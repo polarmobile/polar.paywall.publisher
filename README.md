@@ -2,18 +2,44 @@
 
 This project is a simple sample web server for the Polar Mobile Paywall API.
 
+
  * Server only accessible through HTTPS
  * Under no circumstances should an HTTP server be run.
 
 ## Contents ##
 
- * __Overview__: An overview of the system as a whole.
  * __Definitions__: Definitions of bolded terms used throughout this document.
+ * __Overview__: An overview of the system as a whole.
+ * __Deployment__: An overview of how the server should be deployed.
 
-## Overview #
+## Definitions ##
 
-This section gives a broad overview of the paywall system as a whole. See
-the definitions section for definitions of bolded terms.
+This document describes the definitions used throughout this document.
+
+### Architecture ###
+
+Definitions related to the systems architecture.
+
+ * __Client__ := Client devices, like iPhones, Androids and Blackberries.
+ * __Server__ := Polar Mobile's server.
+ * __Publisher__ := The publishers server.
+
+### Business ###
+
+Definitions related to the business domain.
+
+ * __Entitilement Mechanism__ := A way users can access protected content.
+    * __Subscription__ := An __entitilement mechanism__ where the user pays a recurring fee.
+        * __Proxy Subscription__ := __Subscriptions__ managed by the __Publisher__.
+        * __Managed Subscription__ := __Subscriptions__ managed by the __Server__.
+ * __Product__ := Content that is protected.
+ * __Seller__ := A legal entity that provides the content.
+ * __Product Association__ := Association between __Entitlement Mechanism__ and __Product__.
+ * __Product Allocation__ := When a user gains access to a __Product__.
+
+## Overview ##
+
+This section gives a broad overview of the paywall system as a whole.
 
 ### Objective ###
 
@@ -55,28 +81,9 @@ __server__.
  * __Authenticate__: Send user credentials to the __publisher__ and get a key back.
  * __Product Access__: Request premission to serve content to the client.
 
-## Definitions ##
+## Deployment ##
 
-This document describes the definitions used throughout this document.
-
-### Architecture ###
-
-Definitions related to the systems architecture.
-
- * __Client__ := Client devices, like iPhones, Androids and Blackberries.
- * __Server__ := Polar Mobile's server.
- * __Publisher__ := The publishers server.
-
-### Business ###
-
-Definitions related to the business domain.
-
- * __Entitilement Mechanism__ := A way users can access protected content.
-    * __Subscription__ := An __entitilement mechanism__ where the user pays a recurring fee.
-        * __Proxy Subscription__ := __Subscriptions__ managed by the __Publisher__.
-        * __Managed Subscription__ := __Subscriptions__ managed by the __Server__.
- * __Product__ := Content that is protected.
- * __Seller__ := A legal entity that provides the content.
- * __Product Association__ := Association between __Entitlement Mechanism__ and __Product__.
- * __Product Allocation__ := When a user gains access to a __Product__.
+The __publisher__ server is deployed as a HTTPS web server. It should under no
+circumstances be exposed as an HTTP server as it may allow a third party to
+obtain login credentials.
 
