@@ -11,6 +11,7 @@ This project is a simple sample web server for the Polar Mobile Paywall API.
  * __Definitions__: Definitions of bolded terms used throughout this document.
  * __Overview__: An overview of the system as a whole.
  * __Deployment__: An overview of how the server should be deployed.
+ * __Errors__: An overview of error reporting.
 
 ## Definitions ##
 
@@ -86,4 +87,83 @@ __server__.
 The __publisher__ server is deployed as a HTTPS web server. It should under no
 circumstances be exposed as an HTTP server as it may allow a third party to
 obtain login credentials.
+
+Note that routing rules should only allow traffic between Polar's server and
+the Publisher's server over HTTPS (port 443).
+
+## Errors ##
+
+For Client Errors (400-series) and Server Errors (500-series), an error report
+should be returned. Note that some error messages will be returned to the client
+as printable text. It is up to the publisher to ensure the quality of these
+messages.
+
+### Error Reports ###
+
+Error are encoded using json. The body of the error is a json dictionary with
+a single key called "error". The "error" value is another dictionary with the
+following parameters.
+
+ * "id"
+ * "code"
+ * "message"
+ * "resource"
+
+#### id ####
+
+"id" is an attribute that is claculated from the other values in the message.
+To calculate the "id", you need to generate an SHA1 hash of the following
+values in order:
+
+ 1. Key value pairs in alphabetical order:
+  1. code
+  1. message
+  1. resource
+ 1. Date and Time
+ 1. Resource URI
+ 1. Originating IP Address
+
+The date and time fields iso formatted values in UTC. Specifically, in the
+format YYYY-MM-DDTHH:MM:SS.mmmmmm. The following is an example of a date
+time value:
+
+    "2012-02-10T19:06:31.996996"
+
+An example of the implementation of this algorithm can be found in the error.py
+file under the publisher directory.
+
+#### code ####
+
+This is a simple error code that both Polar's server and the client can use to
+easily triage an error. Each entry point contains documentation on the error
+codes it may return.
+
+#### message ####
+
+A description of the error.
+
+#### message ####
+
+The resource URI the request was attempting to access.
+
+#### Example ####
+
+Example Request:
+
+    GET /paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b54eb0e4b2736e93 HTTP/1.1
+
+Example Error Response:
+
+    HTTP/1.1 404 NOT FOUND
+    Content-Type: application/json
+    Accept-Language: en
+    
+    {
+        "error": {
+            "id": "9137646716eb362d6eb07d893895b6dc",
+            "code": "InvalidProduct",
+            "message": "The specified article does not exist.",
+            "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b54eb0e4b2736e93"
+        }
+    }
 
