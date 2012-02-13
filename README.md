@@ -115,10 +115,8 @@ following parameters.
 To calculate the "id", you need to generate an SHA1 hash of the following
 values in order:
 
- 1. Key value pairs in alphabetical order:
-  1. code
-  1. message
-  1. resource
+ 1. HTTP Header Values
+  * Note that only the headers that start with HTTP- will be used.
  1. Date and Time
  1. Resource URI
  1. Originating IP Address
@@ -129,8 +127,9 @@ time value:
 
     "2012-02-10T19:06:31.996996"
 
-An example of the implementation of this algorithm can be found in the error.py
-file under the publisher directory.
+The originating IP address is the contents of the REMOTE_ADDR field in the
+HTTP header. An example of the implementation of this algorithm can be found
+in the error.py file under the publisher directory.
 
 #### code ####
 
