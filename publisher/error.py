@@ -119,3 +119,10 @@ def create_error_id(http_headers):
     for header, value in http_headers:
         result.update(header)
         result.update(str(value))
+
+    # Add the date and time.
+    date = datetime.utcnow()
+    result.update(date)
+
+    # Return the hash.
+    return result.hexdigest()
