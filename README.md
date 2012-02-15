@@ -23,7 +23,7 @@ This project is a simple sample web server for the Polar Mobile Paywall API.
 
 ## Definitions ##
 
-This document describes the definitions used throughout this document.
+This section describes the definitions used throughout this document.
 
 ### Architecture ###
 
@@ -57,14 +57,10 @@ publications.
 
 ### Moving Parts ###
 
- * __Client__ := Client devices, like iPhones, Androids and Blackberries.
- * __Server__ := Polar Mobile's server.
- * __Publisher__ := The publishers server.
-
 The basic operation is as follows. First the user logs in. The __client__ uses
 those credentials to ask the __server__ for a session key. The __server__ will
-then ask the __publisher__ for the key. The __publisher__ will then send the
-key to the server, who will send it back to the client.
+then ask the __publisher__ for the key. The __publisher__ will send the key to
+the __server__, who will send it back to the client.
 
 Next, when a __client__ wants to access protected content, they will send the
 key with the request, which will get proxied by the __server__ to the
@@ -74,16 +70,17 @@ __client__.
 
 ### API ###
 
-An overview of the communication that happens between the __client__ and the
-__server__.
+This section is an overview of the communication that happens between the
+__client__ and the __server__.
 
 #### Client to Server ####
 
+Note that this part of the API is not implemented by the __publisher's__ server.
+They are described for completeness.
+
  * __Listing__: Obtain a listing of all __products__.
  * __Authenticate__: Send user credentials to the __server__ and get a key back.
-    * Done on a per product basis.
  * __Product Access__: Request content from the server with a key.
-    * Done via a new version of our editorial APIs.
 
 #### Server to Publisher ####
 
@@ -105,8 +102,8 @@ passwords and keys.
 
 For Client Errors (400-series) and Server Errors (500-series), an error report
 should be returned. Note that some error messages will be returned to the client
-as printable text. It is up to the publisher to ensure the quality of these
-messages.
+as printable text. It is up to the publisher to ensure the quality of the
+content of these messages.
 
 ### Error Reports ###
 
@@ -137,15 +134,15 @@ time value:
 
     "2012-02-10T19:06:31.996996"
 
-The originating IP address is the contents of the REMOTE_ADDR field in the
+The originating IP address is the contents of the REMOTE\_ADDR field in the
 HTTP header. An example of the implementation of this algorithm can be found
 in the error.py file under the publisher directory.
 
 #### code ####
 
-This is a simple error code that both Polar's server and the client can use to
-easily triage an error. Each entry point contains documentation on the error
-codes it may return.
+This is a string error code that both Polar's server and the client can use to
+easily triage an error. Each entry point in this project contains documentation
+on the error codes it may return.
 
 #### message ####
 
