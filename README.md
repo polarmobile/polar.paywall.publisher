@@ -2,16 +2,24 @@
 
 This project is a simple sample web server for the Polar Mobile Paywall API.
 
-
- * Server only accessible through HTTPS
- * Under no circumstances should an HTTP server be run.
-
 ## Contents ##
 
  * __Definitions__: Definitions of bolded terms used throughout this document.
+	* __Architecture__
+	* __Business__
  * __Overview__: An overview of the system as a whole.
+	* __Objective__
+	* __Moving Parts__
+	* __API__
+		* __Client to Server__
+		* __Server to Publisher__
  * __Deployment__: An overview of how the server should be deployed.
  * __Errors__: An overview of error reporting.
+	* __Error Reports__
+		* __id__
+		* __code__
+		* __resource__
+		* __Example__
 
 ## Definitions ##
 
@@ -69,7 +77,7 @@ __client__.
 An overview of the communication that happens between the __client__ and the
 __server__.
 
-### Client to Server ###
+#### Client to Server ####
 
  * __Listing__: Obtain a listing of all __products__.
  * __Authenticate__: Send user credentials to the __server__ and get a key back.
@@ -77,7 +85,7 @@ __server__.
  * __Product Access__: Request content from the server with a key.
     * Done via a new version of our editorial APIs.
 
-### Server to Publisher ###
+#### Server to Publisher ####
 
  * __Authenticate__: Send user credentials to the __publisher__ and get a key back.
  * __Product Access__: Request premission to serve content to the client.
@@ -89,7 +97,9 @@ circumstances be exposed as an HTTP server as it may allow a third party to
 obtain login credentials.
 
 Note that routing rules should only allow traffic between Polar's server and
-the Publisher's server over HTTPS (port 443).
+the Publisher's server over HTTPS (port 443). An IDS should be placed in front
+of the server to ensure that an attacker does not attempt to brute force any
+passwords and keys.
 
 ## Errors ##
 
@@ -141,7 +151,7 @@ codes it may return.
 
 A description of the error.
 
-#### message ####
+#### resource ####
 
 The resource URI the request was attempting to access.
 
