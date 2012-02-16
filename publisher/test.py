@@ -32,19 +32,33 @@ from unittest import TestCase, main
 # Used to mimic functions like datetime to make testing predictable.
 from mock import patch, MagicMock
 
-from error import create_error_id
+# Used to test error handling code.
+from error import create_error
+
 
 class TestErrors(TestCase):
     '''
     Test the code in errors.py.
     '''
-    @patch('error.datetime')
-    def test_create_id(self,datetime):
+    def test_create_error(self):
         '''
-        Tests id generation for error codes using a positive example.
+        Tests generation of an error using positive example.
         '''
-        datetime.utcnow = MagicMock(return_value='hi')
-        print create_error_id({})
+        # Generate the example.
+        code = 'TestError'
+        message = 'This is a test error.'
+        resource = '/test'
+
+        # Call create_error and get the result.
+        result = create_error(code, message, resource)
+
+        # Check the result's type.
+        self.assertIsInstance(result, str)
+
+        # Check the result's content.
+        expected = '{"error": {"message": "This is a test error.", '\
+            '"code": "TestError", "resource": "/test"}}'
+        self.assertEqual(result, expected)
 
 # If the script is called directly, then the global variable __name__ will
 # be set to main.

@@ -30,7 +30,7 @@
 from json import dumps
 
 
-def create_error(http_headers, code, message, resource):
+def create_error(code, message, resource):
     '''
     For Client Errors (400-series) and Server Errors (500-series), an error
     report should be returned. Note that some errors will be returned to the
