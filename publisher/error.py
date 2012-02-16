@@ -29,12 +29,6 @@
 # Used to encode the resulting error into json.
 from json import dumps
 
-# Used to get the UTC iso formatted date time string.
-from datetime import datetime
-
-# Used to generate the has of the error id.
-from hashlib import sha1
-
 
 def create_error(http_headers, code, message, resource):
     '''
@@ -47,12 +41,9 @@ def create_error(http_headers, code, message, resource):
     with a key called "error". The "error" value is another dictionary with
     the following parameters.
 
-     * "id"
      * "code"
      * "message"
      * "resource"
-
-    "id" is generated using the create_error_id function below.
 
     "code" is a string error code that both Polar's server and the client
     can use to easily triage an error. Each entry point in this project
@@ -71,58 +62,11 @@ def create_error(http_headers, code, message, resource):
     result = {}
     result['error'] = {}
 
-    # Generate the error id.
-    error_id = create_error_id(http_headers)
-
     # Store the error values. Note that the order of insertion does not
     # matter as this is a hash table.
-    result['error']['id'] = error_id
     result['error']['code'] = code
     result['error']['message'] = message
     result['error']['resource'] = resource
 
     # Convert the result into json and return the string.
     return dumps(result)
-
-
-def create_error_id(http_headers):
-    '''
-    "id" is an attribute that is claculated from the other values in the
-    message. To calculate the "id", you need to generate an SHA1 hash of
-    the following values in order:
-
-     1. HTTP Header Values
-      * Note that only the headers that start with HTTP- will be used.
-     1. Date and Time
-     1. Resource URI
-     1. Originating IP Address
-
-    The date and time fields iso formatted values in UTC. Specifically,
-    in the format YYYY-MM-DDTHH:MM:SS.mmmmmm. The following is an example
-    of a date time value:
-
-        "2012-02-10T19:06:31.996996"
-
-    The originating IP address is the contents of the REMOTE\_ADDR field
-    in the HTTP header.
-
-    This function takes a hash table of HTTP headers and generates the
-    appropriate error code as a string.
-    '''
-    # Hash the headers in alphabetical order.
-    http_headers.sort()
-
-    # Create a sha1 hash object.
-    result = sha1()
-
-    # Add the headers to the hash.
-    for header, value in http_headers:
-        result.update(header)
-        result.update(str(value))
-
-    # Add the date and time.
-    date = datetime.utcnow()
-    result.update(date)
-
-    # Return the hash.
-    return result.hexdigest()

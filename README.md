@@ -111,32 +111,9 @@ Error are encoded using json. The body of the error is a json dictionary with
 a single key called "error". The "error" value is another dictionary with the
 following parameters.
 
- * "id"
  * "code"
  * "message"
  * "resource"
-
-#### id ####
-
-"id" is an attribute that is claculated from the other values in the message.
-To calculate the "id", you need to generate an SHA1 hash of the following
-values in order:
-
- 1. HTTP Header Values
-  * Note that only the headers that start with HTTP- will be used.
- 1. Date and Time
- 1. Resource URI
- 1. Originating IP Address
-
-The date and time fields iso formatted values in UTC. Specifically, in the
-format YYYY-MM-DDTHH:MM:SS.mmmmmm. The following is an example of a date
-time value:
-
-    "2012-02-10T19:06:31.996996"
-
-The originating IP address is the contents of the REMOTE\_ADDR field in the
-HTTP header. An example of the implementation of this algorithm can be found
-in the error.py file under the publisher directory.
 
 #### code ####
 
@@ -156,7 +133,7 @@ The resource URI the request was attempting to access.
 
 Example Request:
 
-    GET /paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b54eb0e4b2736e93 HTTP/1.1
+    GET /paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b HTTP/1.1
 
 Example Error Response:
 
@@ -166,10 +143,8 @@ Example Error Response:
     
     {
         "error": {
-            "id": "9137646716eb362d6eb07d893895b6dc",
             "code": "InvalidProduct",
             "message": "The specified article does not exist.",
-            "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b54eb0e4b2736e93"
+            "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b"
         }
     }
-
