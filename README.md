@@ -33,6 +33,13 @@ Definitions related to the systems architecture.
  * __Server__ := Polar Mobile's server.
  * __Publisher__ := The publishers server.
 
+### API ###
+
+Definitions specific to this API.
+
+ * __Client Error__ := An error message that is proxied to the client.
+ * __Server Error__ := An error message that is stored on Polar's server.
+
 ### Business ###
 
 Definitions related to the business domain.
@@ -85,7 +92,7 @@ They are described for completeness.
 #### Server to Publisher ####
 
  * __Authenticate__: Send user credentials to the __publisher__ and get a key back.
- * __Product Access__: Request premission to serve content to the client.
+ * __Product Access__: Request permission to serve content to the client.
 
 ## Deployment ##
 
@@ -107,9 +114,9 @@ content of these messages.
 
 ### Error Reports ###
 
-Error are encoded using json. The body of the error is a json dictionary with
-a single key called "error". The "error" value is another dictionary with the
-following parameters.
+Error are encoded using json. The body of the error is a json map with a single
+key called "error". The "error" value is another map with the following
+parameters:
 
  * "code"
  * "message"

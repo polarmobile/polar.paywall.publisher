@@ -37,9 +37,9 @@ def create_error(code, message, resource):
     client as printable text. It is up to the publisher to ensure the
     quality of the content of these messages.
 
-    Error are encoded using json. The body of the error is a json dictionary
-    with a key called "error". The "error" value is another dictionary with
-    the following parameters.
+    Error are encoded using json. The body of the error is a json map with a
+    key called "error". The "error" value is another map with the following
+    parameters:
 
      * "code"
      * "message"

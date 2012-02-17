@@ -35,22 +35,177 @@ VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
 FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
+
 @get(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
 def auth(request, api, version, format, product_code):
     '''
-    Attempt an authentication for a product using supplied credentials. If
-    successful, a session key is obtained that can be used for requests to
-    protected resources/content. The base URL scheme for this entry point is:
+    Overview:
 
-    /:api/:version/:format/auth/:productcode
+        Attempt an authentication for a product using supplied credentials. If
+        successful, a session key is obtained that can be used for requests to
+        protected resources/content. The base URL scheme for this entry point
+        is:
 
-    In this particular case, the api is "paywallproxy" and the version is
-    v1.0.0. Currently, the only supported format is "json". The URL for
-    this entry point therefore looks like:
+            /:api/:version/:format/auth/:productcode
 
-    /paywallproxy/v1.0.0/json/auth/:productcode
+        In this particular case, the api is "paywallproxy" and the version is
+        v1.0.0. Currently, the only supported format is "json". The URL for
+        this entry point therefore looks like:
+
+            /paywallproxy/v1.0.0/json/auth/:productcode
+
+        If the product cannot be found, an "InvalidProduct" error should be
+        returned. This error will be returned to the client. A full list of
+        errors that this entry point returns is available below. Client errors
+        are proxied to the client. Server errors remain on Polar's server.
+
+        An auth-scheme token is expected when a call is made to this API end
+        point. It must conform to RFC 2617 specifications. The *Authorization*
+        header has the follwoing form:
+
+            Authorization: PolarPaywallProxyAuthv1.0.0
+
+    Parameters:
+
+        There are two sets of parameters that this API entry point serves. The
+        first set consists of the product code, which is specified in the URL
+        and the post body, which contains formatted json. Technical details
+        will follow after a description of the parameters and an example will
+        follow after that.
+
+        The product code is part of the URL. It is a publisher-assigned unique
+        identifier for this product. The publisher code is required.
+
+        The post body is a json map with two keys. The first key is "device",
+        which is a json map describing the device requesting authorization.
+        This key is required. The second key is "authParams", which is
+        optional.
+
+        The "device" map contains three keys. "manufacturer" is the full name
+        of the device manufacturer. "model" is the device's model number and
+        name. "os_version" is a string that describes the version of the
+        device's operating system.
+
+        The contents of the "authParams" map will vary based on the settings
+        on the Polar server. The keys of the map is the name of the parameter
+        set on the server. The values of the map is the value entered by the
+        user.
+
+        Details regarding the various parameters are described below.
+
+        Product Code:
+
+            A publisher-assigned unique identifier for this product.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: URL
+            Format: URL
+            Type: String
+            Length: 256
+
+        device:
+
+            A json map describing the device requesting authorization.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: json map
+            Length: N/A
+
+        manufacturer:
+
+            The full name of the device manufacturer. Contained in the "device"
+            map.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Length: 256
+
+        model:
+
+            The device's model number and name. Contained in the "device" map.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Length: 256
+
+        os_version:
+
+            The version of the device's operating system. Contained in the
+            "device" map.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Length: 256
+
+        authParams:
+
+            A map of the authentication parameters and their values.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: map
+            Length: N/A
+
+        authParams key:
+
+            The name of the authentication parameter. Contained in the
+            "authParams" map.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Length: 256
+
+        authParams value:
+
+            The user entered value of the authentication parameter. Contained
+            in the "authParams" map.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Length: 512
+
+    Example:
+
+
+    Client Errors:
+
+        This section documents errors that are returned to the client. Note
+        that the publisher is free to modify the content of these messages as
+        they please.
+
+        InvalidProduct:
+
+            Thrown when the product code indicated is invalid.
+
+            Code: InvalidProduct
+            Message: The requested article could not be found.
+            HTTP Error Code: 404
+
+    Server Errors:
+
 
     '''
     return '%s, %s, %s, %s' % (api, version, format, product_code)
 
-run_itty(host='0.0.0.0',port=8080)
+run_itty(host='0.0.0.0', port=8080)
