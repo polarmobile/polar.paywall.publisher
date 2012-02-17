@@ -102,7 +102,7 @@ def auth(request, api, version, format, product_code):
             Location: URL
             Format: URL
             Type: String
-            Length: 256
+            Max Length: 256
 
         device:
 
@@ -113,7 +113,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: json map
-            Length: N/A
+            Max Length: N/A
 
         manufacturer:
 
@@ -125,7 +125,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: string
-            Length: 256
+            Max Length: 256
 
         model:
 
@@ -136,7 +136,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: string
-            Length: 256
+            Max Length: 256
 
         os_version:
 
@@ -148,7 +148,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: string
-            Length: 256
+            Max Length: 256
 
         authParams:
 
@@ -159,7 +159,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: map
-            Length: N/A
+            Max Length: N/A
 
         authParams key:
 
@@ -171,7 +171,7 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: string
-            Length: 256
+            Max Length: 256
 
         authParams value:
 
@@ -183,7 +183,27 @@ def auth(request, api, version, format, product_code):
             Location: POST Body
             Format: json
             Type: string
-            Length: 512
+            Max Length: 512
+
+    Response:
+
+        The following parameters are returned by this API end point. The
+        resposne is json encoded. It has two keys; "sessionKey" and "products".
+        "sessionKey" is a key that allows the client to reauthenticate without
+        the supplied authentication parameters. "products" is a list of product
+        identifiers.
+
+        sessionKey:
+
+            A publisher-assigned unique identifier for this product.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: URL
+            Format: URL
+            Type: String
+            Max Length: 256
+
 
     Example:
 
