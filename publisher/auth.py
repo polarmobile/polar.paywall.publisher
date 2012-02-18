@@ -191,19 +191,42 @@ def auth(request, api, version, format, product_code):
         resposne is json encoded. It has two keys; "sessionKey" and "products".
         "sessionKey" is a key that allows the client to reauthenticate without
         the supplied authentication parameters. "products" is a list of product
-        identifiers.
+        identifiers that the user has access to.
 
         sessionKey:
 
-            A publisher-assigned unique identifier for this product.
+            A key that allows the client to reauthenticate without the supplied
+            authentication parameters.
 
             Availability: >= v1.0.0
             Required: Yes
-            Location: URL
-            Format: URL
-            Type: String
-            Max Length: 256
+            Location: POST Body
+            Format: json
+            Type: string
+            Max Length: 512
 
+        products:
+
+            A list of product identifiers that the user has access to.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Max Length: 512
+
+        product:
+
+            A publisher-assigned unique identifier for this product that the
+            user has access to. Contained in the "products" list.
+
+            Availability: >= v1.0.0
+            Required: Yes
+            Location: POST Body
+            Format: json
+            Type: string
+            Max Length: 256
 
     Example:
 
@@ -223,7 +246,6 @@ def auth(request, api, version, format, product_code):
             HTTP Error Code: 404
 
     Server Errors:
-
 
     '''
     return '%s, %s, %s, %s' % (api, version, format, product_code)
