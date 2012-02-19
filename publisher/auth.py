@@ -213,8 +213,8 @@ def auth(request, api, version, format, product_code):
             Required: Yes
             Location: POST Body
             Format: json
-            Type: string
-            Max Length: 512
+            Type: list
+            Max Length: N/A
 
         product:
 
