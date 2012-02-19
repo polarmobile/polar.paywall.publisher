@@ -33,7 +33,7 @@ from unittest import TestCase, main
 from mock import patch, MagicMock
 
 # Used to test error handling code.
-from utils import create_error
+from publisher.utils import create_error
 
 
 class TestErrors(TestCase):
