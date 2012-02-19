@@ -36,4 +36,5 @@ setup(name='polar.paywall.publisher',
       author_email='rishi.ramraj@polarmobile.com',
       url='http://www.polarmobile.com',
       packages=['publisher'],
+      scripts=['scripts/publisher'],
       depends=['itty >= 0.8.0'])

@@ -26,12 +26,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Used to process unhandled http errors.
-from itty import error
+# Used to run the web server for testing purposes.
+from itty import post, run_itty, get
 
-@error(500)
-def handle_500(request, exception):
-    '''
-    Handles http error 500.
-    '''
-    return 'Something bad happened.'
+# Import error handling entry points.
+from publisher.error import handle_500
+
+# Run the web server.
+run_itty(host='0.0.0.0', port=8080)
