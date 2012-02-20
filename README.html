@@ -1,0 +1,187 @@
+<h1>Polar Mobile Publisher Paywall: Sample Server #</h1>
+
+<p>This project is a simple sample web server for the Polar Mobile Paywall API.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><strong>Definitions</strong>: Definitions of bolded terms used throughout this document.
+<ul>
+<li><strong>Architecture</strong></li>
+<li><strong>Business</strong></li>
+</ul></li>
+<li><strong>Overview</strong>: An overview of the system as a whole.
+<ul>
+<li><strong>Objective</strong></li>
+<li><strong>Moving Parts</strong></li>
+<li><strong>API</strong>
+<ul>
+<li><strong>Client to Server</strong></li>
+<li><strong>Server to Publisher</strong></li>
+</ul></li>
+</ul></li>
+<li><strong>Deployment</strong>: An overview of how the server should be deployed.</li>
+<li><strong>Errors</strong>: An overview of error reporting.
+<ul>
+<li><strong>Error Reports</strong>
+<ul>
+<li><strong>id</strong></li>
+<li><strong>code</strong></li>
+<li><strong>resource</strong></li>
+<li><strong>Example</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+
+<h2>Definitions</h2>
+
+<p>This section describes the definitions used throughout this document.</p>
+
+<h3>Architecture</h3>
+
+<p>Definitions related to the systems architecture.</p>
+
+<ul>
+<li><strong>Client</strong> := Client devices, like iPhones, Androids and Blackberries.</li>
+<li><strong>Server</strong> := Polar Mobile's server.</li>
+<li><strong>Publisher</strong> := The publishers server.</li>
+</ul>
+
+<h3>API</h3>
+
+<p>Definitions specific to this API.</p>
+
+<ul>
+<li><strong>Client Error</strong> := An error message that is proxied to the client.</li>
+<li><strong>Server Error</strong> := An error message that is stored on Polar's server.</li>
+</ul>
+
+<h3>Business</h3>
+
+<p>Definitions related to the business domain.</p>
+
+<ul>
+<li><strong>Entitilement Mechanism</strong> := A way users can access protected content.
+<ul>
+<li><strong>Subscription</strong> := An <strong>entitilement mechanism</strong> where the user pays a recurring fee.
+<ul>
+<li><strong>Proxy Subscription</strong> := <strong>Subscriptions</strong> managed by the <strong>Publisher</strong>.</li>
+<li><strong>Managed Subscription</strong> := <strong>Subscriptions</strong> managed by the <strong>Server</strong>.</li>
+</ul></li>
+</ul></li>
+<li><strong>Product</strong> := Content that is protected.</li>
+<li><strong>Seller</strong> := A legal entity that provides the content.</li>
+<li><strong>Product Association</strong> := Association between <strong>Entitlement Mechanism</strong> and <strong>Product</strong>.</li>
+<li><strong>Product Allocation</strong> := When a user gains access to a <strong>Product</strong>.</li>
+</ul>
+
+<h2>Overview</h2>
+
+<p>This section gives a broad overview of the paywall system as a whole.</p>
+
+<h3>Objective</h3>
+
+<p>The point of this API is to allow publishers to password protect their
+publications.</p>
+
+<h3>Moving Parts</h3>
+
+<p>The basic operation is as follows. First the user logs in. The <strong>client</strong> uses
+those credentials to ask the <strong>server</strong> for a session key. The <strong>server</strong> will
+then ask the <strong>publisher</strong> for the key. The <strong>publisher</strong> will send the key to
+the <strong>server</strong>, who will send it back to the client.</p>
+
+<p>Next, when a <strong>client</strong> wants to access protected content, they will send the
+key with the request, which will get proxied by the <strong>server</strong> to the
+<strong>publisher</strong>. If the client has access to the content, the <strong>publisher</strong> will
+return successfully and the <strong>server</strong> will deliver the content to the
+<strong>client</strong>.</p>
+
+<h3>API</h3>
+
+<p>This section is an overview of the communication that happens between the
+<strong>client</strong> and the <strong>server</strong>.</p>
+
+<h4>Client to Server</h4>
+
+<p>Note that this part of the API is not implemented by the <strong>publisher's</strong> server.
+They are described for completeness.</p>
+
+<ul>
+<li><strong>Listing</strong>: Obtain a listing of all <strong>products</strong>.</li>
+<li><strong>Authenticate</strong>: Send user credentials to the <strong>server</strong> and get a key back.</li>
+<li><strong>Product Access</strong>: Request content from the server with a key.</li>
+</ul>
+
+<h4>Server to Publisher</h4>
+
+<ul>
+<li><strong>Authenticate</strong>: Send user credentials to the <strong>publisher</strong> and get a key back.</li>
+<li><strong>Product Access</strong>: Request permission to serve content to the client.</li>
+</ul>
+
+<h2>Deployment</h2>
+
+<p>The <strong>publisher</strong> server is deployed as a HTTPS web server. It should under no
+circumstances be exposed as an HTTP server as it may allow a third party to
+obtain login credentials.</p>
+
+<p>Note that routing rules should only allow traffic between Polar's server and
+the Publisher's server over HTTPS (port 443). An IDS should be placed in front
+of the server to ensure that an attacker does not attempt to brute force any
+passwords and keys.</p>
+
+<h2>Errors</h2>
+
+<p>For Client Errors (400-series) and Server Errors (500-series), an error report
+should be returned. Note that some error messages will be returned to the client
+as printable text. It is up to the publisher to ensure the quality of the
+content of these messages.</p>
+
+<h3>Error Reports</h3>
+
+<p>Error are encoded using json. The body of the error is a json map with a single
+key called "error". The "error" value is another map with the following
+parameters:</p>
+
+<ul>
+<li>"code"</li>
+<li>"message"</li>
+<li>"resource"</li>
+</ul>
+
+<h4>code</h4>
+
+<p>This is a string error code that both Polar's server and the client can use to
+easily triage an error. Each entry point in this project contains documentation
+on the error codes it may return.</p>
+
+<h4>message</h4>
+
+<p>A description of the error.</p>
+
+<h4>resource</h4>
+
+<p>The resource URI the request was attempting to access.</p>
+
+<h4>Example</h4>
+
+<p>Example Request:</p>
+
+<pre><code>GET /paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b HTTP/1.1
+</code></pre>
+
+<p>Example Error Response:</p>
+
+<pre><code>HTTP/1.1 404 NOT FOUND
+Content-Type: application/json
+Accept-Language: en
+
+{
+    "error": {
+        "code": "InvalidProduct",
+        "message": "The specified article does not exist.",
+        "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b"
+    }
+}
+</code></pre>

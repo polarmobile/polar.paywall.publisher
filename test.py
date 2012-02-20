@@ -94,7 +94,7 @@ class TestErrors(TestCase):
         Tests handling of a 500 error using a single positive example.
         '''
         # Create the request object.
-        request = create_request('/test')
+        request = create_request('/test/')
 
         # Issue the request to the method being tested.
         result = handle_500(request, exception=None)
@@ -109,6 +109,28 @@ class TestErrors(TestCase):
 
         # Check the result's content type.
         self.assertEqual(result.content_type, 'application/json')
+
+    def test_error_404(self):
+        '''
+        Tests handling of a 404 error using a single positive example.
+        '''
+        # Create the request object.
+        request = create_request('/test/')
+
+        # Issue the request to the method being tested.
+        result = handle_404(request, exception=None)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "No handler could be found for the '\
+            'requested resource.", "code": "NoHandler", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
 
 # If the script is called directly, then the global variable __name__ will
 # be set to main.

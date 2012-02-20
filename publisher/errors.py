@@ -66,7 +66,7 @@ def handle_500(request, exception):
             Message: An internal server error occurred.
             HTTP Error Code: 500
     '''
-    # Generate the example.
+    # Generate the error report.
     code = 'InternalError'
     message = 'An internal server error occurred.'
     resource = request.path
@@ -81,6 +81,42 @@ def handle_500(request, exception):
 @error(404)
 def handle_404(request, exception):
     '''
-    Handles http error 500.
+    This function handles any uncaught HTTP 404 errors. Remember that 4xx type
+    HTTP errors should be accompanied by an error report. A 404 error is a
+    common error for many web frameworks; particularly those that use regex to
+    route requests. Returning a proper error report makes diagnosing such
+    problems easier.
+
+    If the Polar server receives a 4xx error that does not have a report, it
+    will first try to decode the body of the post request using json. This
+    process will fail, and the server will then store the body of the post
+    request (as opposed to its error code, message and resource) and continue
+    processing.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        NoHandler:
+
+            Thrown when the URL could not be routed to a handler. This error
+            code should be thrown when the web framework does not understand
+            the request being issued. It would imply that the API that the
+            Polar server expects is not implemented on the publisher.
+
+            Code: NoHandler
+            Message: No handler could be found for the requested resource.
+            HTTP Error Code: 404
     '''
-    return 'Something bad happened.'
+    # Generate the error report.
+    code = 'NoHandler'
+    message = 'No handler could be found for the requested resource.'
+    resource = request.path
+
+    # Call create_error and get the result.
+    result = report_error(code, message, resource)
+
+    # Return the result.
+    return result
