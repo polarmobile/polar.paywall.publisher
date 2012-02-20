@@ -29,9 +29,60 @@
 # Used to process unhandled http errors.
 from itty import error
 
-@error(500)
+# Used to report errors.
+from publisher.utils import report_error
+
+
+@error(404)
 def handle_500(request, exception):
+    '''
+    This function handles any uncaught HTTP 500 errors. Remember that 5xx type
+    HTTP errors should be accompanied by an error report. While it is not
+    necessary or feasible (HTTP Proxies can generate errors, for example) to
+    handle all uncaught exceptions, handling the HTTP 500 exception explicitly
+    lets the publisher control the debugging information exposed.
+
+    Some web frameworks may be verbose about an http 500 error, providing
+    detailed debugging information that may compromise the system. It is up to
+    the publisher to ensure that these features are well controlled.
+
+    If the Polar server receives a 5xx error that does not have a report, it
+    will first try to decode the body of the post request using json. This
+    process will fail, and the server will then store the body of the post
+    request (as opposed to its error code, message and resource) and continue
+    processing.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InternalError:
+
+            Thrown when an uncaught exception is raised by the publisher.
+
+            Code: InternalError
+            Message: An internal server error occurred.
+            HTTP Error Code: 500
+    '''
+    # Generate the example.
+    code = 'InternalError'
+    message = 'An internal server error occurred.'
+    resource = request.path
+
+    # Call create_error and get the result.
+    result = report_error(code, message, resource)
+
+    # Return the result.
+    return result
+
+
+"""
+@error(404)
+def handle_404(request, exception):
     '''
     Handles http error 500.
     '''
     return 'Something bad happened.'
+"""

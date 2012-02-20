@@ -29,18 +29,45 @@
 # Used to define and run unit tests.
 from unittest import TestCase, main
 
-# Used to mimic functions like datetime to make testing predictable.
+# Used to mimic objects in order to test more complex calls.
 from mock import patch, MagicMock
 
+# Used to generate fake http requests.
+from itty import Request
+
 # Used to test error handling code.
-from publisher.utils import create_error
+from publisher.utils import report_error
+
+# Used to test http error handling code.
+from publisher.errors import handle_500
+#from publisher.errors import handle_404
+
+
+def create_request(http_path):
+    '''
+    A helper function used to create fake request objects for testing.
+    '''
+    # WSGI and itty operate like CGI. They have a dictionary of environment
+    # variables that specify the paraters of the request. For testing, all we
+    # care to specify is the PATH_INFO variable, which is the URL that the
+    # request is processed with.
+    environ = {}
+    environ['PATH_INFO'] = http_path
+
+    # Create the request object. start_response is a function pointer to an
+    # internal function that itty uses to send a request. For the purposes of
+    # testing, it can be ignored.
+    result = Request(environ, start_response = None)
+
+    # Return the result.
+    return result
 
 
 class TestErrors(TestCase):
     '''
     Test the code in errors.py.
     '''
-    def test_create_error(self):
+    def test_report_error(self):
         '''
         Tests generation of an error using positive example.
         '''
@@ -49,8 +76,8 @@ class TestErrors(TestCase):
         message = 'This is a test error.'
         resource = '/test'
 
-        # Call create_error and get the result.
-        result = create_error(code, message, resource)
+        # Call report_error and get the result.
+        result = report_error(code, message, resource)
 
         # Check the result's type.
         self.assertIsInstance(result, str)
@@ -58,6 +85,21 @@ class TestErrors(TestCase):
         # Check the result's content.
         expected = '{"error": {"message": "This is a test error.", '\
             '"code": "TestError", "resource": "/test"}}'
+        self.assertEqual(result, expected)
+
+    def test_error_500(self):
+        '''
+        Tests handling of a 500 error using a single positive example.
+        '''
+        # Create the request object.
+        request = create_request('/test')
+
+        # Issue the request to the method being tested.
+        result = handle_500(request, exception = None)
+
+        # Check the result's content.
+        expected = '{"error": {"message": "An internal server error '\
+            'occurred.", "code": "InternalError", "resource": "/test/"}}'
         self.assertEqual(result, expected)
 
 # If the script is called directly, then the global variable __name__ will
