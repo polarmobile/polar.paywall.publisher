@@ -56,7 +56,7 @@ def create_request(http_path):
     # Create the request object. start_response is a function pointer to an
     # internal function that itty uses to send a request. For the purposes of
     # testing, it can be ignored.
-    result = Request(environ, start_response = None)
+    result = Request(environ, start_response=None)
 
     # Return the result.
     return result
@@ -97,7 +97,7 @@ class TestErrors(TestCase):
         request = create_request('/test')
 
         # Issue the request to the method being tested.
-        result = handle_500(request, exception = None)
+        result = handle_500(request, exception=None)
 
         # Check the result's type.
         self.assertIsInstance(result, Response)

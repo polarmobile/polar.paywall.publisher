@@ -73,4 +73,4 @@ def report_error(code, message, resource):
     result['error']['resource'] = resource
 
     # Convert the result into json and then package it in an itty response.
-    return Response(dumps(result), content_type = 'application/json')
+    return Response(dumps(result), content_type='application/json')
