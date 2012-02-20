@@ -29,6 +29,9 @@
 # Used to encode the resulting error into json.
 from json import dumps
 
+# Used to contain the itty response with the proper headers.
+from itty import Response
+
 
 def report_error(code, message, resource):
     '''
@@ -56,7 +59,8 @@ def report_error(code, message, resource):
 
     This function takes a hash table of HTTP headers and strings containing
     the remaining characters and produces a string containing the json
-    encoded response.
+    encoded response. It then packages that string in an itty response with
+    the proper header.
     '''
     # Create a hash table to store the result.
     result = {}
@@ -68,5 +72,5 @@ def report_error(code, message, resource):
     result['error']['message'] = message
     result['error']['resource'] = resource
 
-    # Convert the result into json and return the string.
-    return dumps(result)
+    # Convert the result into json and then package it in an itty response.
+    return Response(dumps(result), content_type = 'application/json')

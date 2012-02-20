@@ -33,14 +33,13 @@ from unittest import TestCase, main
 from mock import patch, MagicMock
 
 # Used to generate fake http requests.
-from itty import Request
+from itty import Request, Response
 
 # Used to test error handling code.
 from publisher.utils import report_error
 
 # Used to test http error handling code.
-from publisher.errors import handle_500
-#from publisher.errors import handle_404
+from publisher.errors import handle_500, handle_404
 
 
 def create_request(http_path):
@@ -80,12 +79,15 @@ class TestErrors(TestCase):
         result = report_error(code, message, resource)
 
         # Check the result's type.
-        self.assertIsInstance(result, str)
+        self.assertIsInstance(result, Response)
 
         # Check the result's content.
-        expected = '{"error": {"message": "This is a test error.", '\
+        content = '{"error": {"message": "This is a test error.", '\
             '"code": "TestError", "resource": "/test"}}'
-        self.assertEqual(result, expected)
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
 
     def test_error_500(self):
         '''
@@ -97,10 +99,16 @@ class TestErrors(TestCase):
         # Issue the request to the method being tested.
         result = handle_500(request, exception = None)
 
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
         # Check the result's content.
-        expected = '{"error": {"message": "An internal server error '\
+        content = '{"error": {"message": "An internal server error '\
             'occurred.", "code": "InternalError", "resource": "/test/"}}'
-        self.assertEqual(result, expected)
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
 
 # If the script is called directly, then the global variable __name__ will
 # be set to main.

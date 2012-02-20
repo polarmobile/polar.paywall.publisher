@@ -33,7 +33,7 @@ from itty import error
 from publisher.utils import report_error
 
 
-@error(404)
+@error(500)
 def handle_500(request, exception):
     '''
     This function handles any uncaught HTTP 500 errors. Remember that 5xx type
@@ -78,11 +78,9 @@ def handle_500(request, exception):
     return result
 
 
-"""
 @error(404)
 def handle_404(request, exception):
     '''
     Handles http error 500.
     '''
     return 'Something bad happened.'
-"""
