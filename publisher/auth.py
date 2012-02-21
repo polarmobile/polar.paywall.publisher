@@ -42,7 +42,7 @@ FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
 
-def check_device(body):
+def check_device(request, body):
     '''
     This function checks the validity of the device parameter. It takes the
     decoded json body of the request and returns a Response object if a
@@ -77,7 +77,7 @@ def check_device(body):
         return report_error(code, message, request, status)
 
     # Make sure the device is a dictionary.
-    if isinstance(bodi['device'], dict) == False:
+    if isinstance(body['device'], dict) == False:
         # Generate an error report.
         code = 'InvalidDevice'
         message = 'The device is not a map.'
@@ -428,7 +428,7 @@ def auth(request, api, version, format, product_code):
         return report_error(code, message, request, status)
 
     # Check to make sure the device parameter is valid.
-    response = check_device(body)
+    response = check_device(request, body)
 
     # If check_device finds an error with the request, it will return a
     # response containing the error. If not, it will return None.

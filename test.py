@@ -41,6 +41,9 @@ from publisher.utils import report_error, check_base_url
 # Used to test http error handling code.
 from publisher.errors import handle_500, handle_404
 
+# Used to test auth handling code.
+from publisher.auth import check_device, auth
+
 
 def test_start_response(status, headers):
     '''
@@ -206,8 +209,6 @@ class TestErrors(TestCase):
         # Issue the request to the method being tested.
         result = handle_500(request, exception=None)
 
-        print result
-
         # Check the result's type.
         self.assertIsInstance(result, str)
 
@@ -239,7 +240,266 @@ class TestAuth(TestCase):
     '''
     Test the code in publisher/auth.py.
     '''
-    pass
+    def test_check_device_exists(self):
+        '''
+        Tests to see if the check_device function checks for a missing device.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['test'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The device has not been provided.", '\
+            '"code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_device_type(self):
+        '''
+        Tests to see if the check_device function checks for an invalid device
+        type.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The device is not a map.", '\
+            '"code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_manufacturer_exists(self):
+        '''
+        Tests to see if the check_device function checks for a missing
+        manufacturer.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The manufacturer has not been '\
+            'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_manufacturer_type(self):
+        '''
+        Tests to see if the check_device function checks for an invalid
+        manufacturer type.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = []
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The manufacturer is not a string.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_model_exists(self):
+        '''
+        Tests to see if the check_device function checks for a missing
+        model.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The model has not been provided.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_model_type(self):
+        '''
+        Tests to see if the check_device function checks for an invalid
+        model type.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = []
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The model is not a string.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_os_version_exists(self):
+        '''
+        Tests to see if the check_device function checks for a missing
+        os_version.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The os_version has not been provided.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_os_version_type(self):
+        '''
+        Tests to see if the check_device function checks for an invalid
+        os_version type.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+        body['device']['os_version'] = []
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The os_version is not a string.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_device(self):
+        '''
+        Tests to see if the check_device with a positive example to make sure
+        that None is returned.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+        body['device']['os_version'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_device(request, body)
+
+        # Check the result.
+        self.assertEqual(result, None)
 
 
 # If the script is called directly, then the global variable __name__ will
