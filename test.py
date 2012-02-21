@@ -305,7 +305,7 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['device'] = {}
-        body['device']['manufacturer'] = 'test'
+        body['device']['manufacturer'] = u'test'
 
         # Issue the request to the method being tested.
         result = check_device(request, body)
@@ -327,7 +327,7 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['device'] = {}
-        body['device']['manufacturer'] = 'test'
+        body['device']['manufacturer'] = u'test'
         body['device']['model'] = []
 
         # Issue the request to the method being tested.
@@ -350,8 +350,8 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['device'] = {}
-        body['device']['manufacturer'] = 'test'
-        body['device']['model'] = 'test'
+        body['device']['manufacturer'] = u'test'
+        body['device']['model'] = u'test'
 
         # Issue the request to the method being tested.
         result = check_device(request, body)
@@ -373,8 +373,8 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['device'] = {}
-        body['device']['manufacturer'] = 'test'
-        body['device']['model'] = 'test'
+        body['device']['manufacturer'] = u'test'
+        body['device']['model'] = u'test'
         body['device']['os_version'] = []
 
         # Issue the request to the method being tested.
@@ -397,9 +397,9 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['device'] = {}
-        body['device']['manufacturer'] = 'test'
-        body['device']['model'] = 'test'
-        body['device']['os_version'] = 'test'
+        body['device']['manufacturer'] = u'test'
+        body['device']['model'] = u'test'
+        body['device']['os_version'] = u'test'
 
         # Issue the request to the method being tested.
         result = check_device(request, body)
@@ -430,7 +430,7 @@ class TestAuth(TestCase):
         # Create seed data for the test.
         request = create_request('/test/')
         body = {}
-        body['authParams'] = 'test'
+        body['authParams'] = u'test'
 
         # Issue the request to the method being tested.
         result = check_auth_params(request, body)
@@ -474,7 +474,7 @@ class TestAuth(TestCase):
         request = create_request('/test/')
         body = {}
         body['authParams'] = {}
-        body['authParams']['test'] = 'test'
+        body['authParams']['test'] = u'test'
 
         # Issue the request to the method being tested.
         result = check_auth_params(request, body)

@@ -91,7 +91,7 @@ def check_device(request, body):
         return report_error(code, message, request, status)
 
     # Check to make sure the manufacturer is of the right type.
-    if isinstance(body['device']['manufacturer'], str) == False:
+    if isinstance(body['device']['manufacturer'], unicode) == False:
         code = 'InvalidDevice'
         message = 'The manufacturer is not a string.'
         status = 400
@@ -105,7 +105,7 @@ def check_device(request, body):
         return report_error(code, message, request, status)
 
     # Check to make sure the model is of the right type.
-    if isinstance(body['device']['model'], str) == False:
+    if isinstance(body['device']['model'], unicode) == False:
         code = 'InvalidDevice'
         message = 'The model is not a string.'
         status = 400
@@ -119,7 +119,7 @@ def check_device(request, body):
         return report_error(code, message, request, status)
 
     # Check to make sure the os_version is of the right type.
-    if isinstance(body['device']['os_version'], str) == False:
+    if isinstance(body['device']['os_version'], unicode) == False:
         code = 'InvalidDevice'
         message = 'The os_version is not a string.'
         status = 400
@@ -166,9 +166,9 @@ def check_auth_params(request, body):
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
         # If the value isn't a string, raise an error.
-        if isinstance(body['authParams'][key], str) == False:
+        if isinstance(body['authParams'][key], unicode) == False:
             code = 'InvalidAuthParams'
-            message = 'This authParams value is not a string: ' + str(key)
+            message = 'This authParams value is not a string: ' + unicode(key)
             status = 400
             return report_error(code, message, request, status)
 
