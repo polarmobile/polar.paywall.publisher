@@ -32,6 +32,9 @@ from itty import post, run_itty, get
 # Used to validate the values passed into the base url.
 from publisher.utils import check_base_url
 
+# Used to decode post bodies that contain json encoded data.
+from json import loads
+
 # Regex constants used to match URLs.
 API = r'/(?P<api>\w+)'
 VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'

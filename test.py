@@ -116,7 +116,7 @@ class TestUtils(TestCase):
         version = 'v1.0.0'
         format = 'json'
 
-        # Call the check_base_url function to get the result. 
+        # Call the check_base_url function to get the result.
         result = check_base_url(request, api, version, format)
 
         # Check the result's type.
@@ -144,7 +144,7 @@ class TestUtils(TestCase):
         version = 'test'
         format = 'json'
 
-        # Call the check_base_url function to get the result. 
+        # Call the check_base_url function to get the result.
         result = check_base_url(request, api, version, format)
 
         # Check the result's type.
@@ -173,7 +173,7 @@ class TestUtils(TestCase):
         version = 'v1.0.0'
         format = 'test'
 
-        # Call the check_base_url function to get the result. 
+        # Call the check_base_url function to get the result.
         result = check_base_url(request, api, version, format)
 
         # Check the result's type.
