@@ -33,12 +33,12 @@ from json import dumps
 from itty import Response
 
 
-def report_error(code, message, resource):
+def report_error(code, message, request, status):
     '''
     For Client Errors (400-series) and Server Errors (500-series), an error
     report should be returned. Note that some errors will be returned to the
-    client as printable text. It is up to the publisher to ensure the
-    quality of the content of these messages.
+    client on their device. It is up to the publisher to ensure the  quality
+    of the content of these messages.
 
     Error are encoded using json. The body of the error is a json map with a
     key called "error". The "error" value is another map with the following
@@ -57,10 +57,9 @@ def report_error(code, message, resource):
 
     "resource" is the resource URI the request was attempting to access.
 
-    This function takes a hash table of HTTP headers and strings containing
-    the remaining characters and produces a string containing the json
-    encoded response. It then packages that string in an itty response with
-    the proper header.
+    This function takes the error code, message, request object and the status
+    (http error code) and creates a response object with the content type
+    properly set.
     '''
     # Create a hash table to store the result.
     result = {}
@@ -70,7 +69,8 @@ def report_error(code, message, resource):
     # matter as this is a hash table.
     result['error']['code'] = code
     result['error']['message'] = message
-    result['error']['resource'] = resource
+    result['error']['resource'] = request.path
 
     # Convert the result into json and then package it in an itty response.
-    return Response(dumps(result), content_type='application/json')
+    type = 'application/json'
+    return Response(dumps(result), content_type=type, status=status)

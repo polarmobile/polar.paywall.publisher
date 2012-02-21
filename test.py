@@ -64,7 +64,7 @@ def create_request(http_path):
 
 class TestErrors(TestCase):
     '''
-    Test the code in errors.py.
+    Test the code in publisher/errors.py.
     '''
     def test_report_error(self):
         '''
@@ -73,21 +73,25 @@ class TestErrors(TestCase):
         # Generate the example.
         code = 'TestError'
         message = 'This is a test error.'
-        resource = '/test'
+        request = create_request('/test/')
+        status = 200
 
         # Call report_error and get the result.
-        result = report_error(code, message, resource)
+        result = report_error(code, message, request, status)
 
         # Check the result's type.
         self.assertIsInstance(result, Response)
 
         # Check the result's content.
         content = '{"error": {"message": "This is a test error.", '\
-            '"code": "TestError", "resource": "/test"}}'
+            '"code": "TestError", "resource": "/test/"}}'
         self.assertEqual(result.output, content)
 
         # Check the result's content type.
         self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 200)
 
     def test_error_500(self):
         '''
@@ -110,6 +114,9 @@ class TestErrors(TestCase):
         # Check the result's content type.
         self.assertEqual(result.content_type, 'application/json')
 
+        # Check the result's status.
+        self.assertEqual(result.status, 500)
+
     def test_error_404(self):
         '''
         Tests handling of a 404 error using a single positive example.
@@ -131,6 +138,14 @@ class TestErrors(TestCase):
         # Check the result's content type.
         self.assertEqual(result.content_type, 'application/json')
 
+        # Check the result's status.
+        self.assertEqual(result.status, 404)
+
+
+class TestAuth(TestCase):
+    '''
+    Test the code in publisher/auth.py.
+    '''
 
 # If the script is called directly, then the global variable __name__ will
 # be set to main.

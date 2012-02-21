@@ -247,7 +247,25 @@ def auth(request, api, version, format, product_code):
 
     Server Errors:
 
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidAPI:
+
+            Thrown when the publisher does not recognize the api given.
+
+            Code: InvalidAPI
+            Message: The requested api is not implemented: <given api>.
+            HTTP Error Code: 404
+
     '''
+    # Check to make sure the api is correct.
+    if api != 'paywallproxy':
+        code = 'NoHandler'
+        message = 'No handler could be found for the requested resource.'
+        resource = request.path
+
     return '%s, %s, %s, %s' % (api, version, format, product_code)
 
 run_itty(host='0.0.0.0', port=8080)
