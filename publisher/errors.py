@@ -75,7 +75,7 @@ def handle_500(request, exception):
     # Call report_error and get the result.
     response = report_error(code, message, request, status)
 
-    # Return the result.
+    # Send the result using itty.
     return response.send(request._start_response)
 
 
@@ -120,5 +120,5 @@ def handle_404(request, exception):
     # Call report_error and get the result.
     response = report_error(code, message, request, status)
 
-    # Return the result.
+    # Send the result using itty.
     return response.send(request._start_response)

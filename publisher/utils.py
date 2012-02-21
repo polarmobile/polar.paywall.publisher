@@ -125,32 +125,23 @@ def check_base_url(request, api, version, format):
     '''
     # Check to make sure the api is correct.
     if api != 'paywallproxy':
-        # If the api doesn't match then generate an error report.
         code = 'InvalidAPI'
         message = 'The requested api is not implemented: ' + str(api)
         status = 404
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure the version is correct.
     elif version != 'v1.0.0':
-        # If the version doesn't match then generate an error report.
         code = 'InvalidVersion'
         message = 'The requested version is not implemented: ' + str(version)
         status = 404
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure the format is correct.
     elif format != 'json':
-        # If the format doesn't match then generate an error report.
         code = 'InvalidFormat'
         message = 'The requested format is not implemented: ' + str(format)
         status = 404
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # No errors were found, so return None.

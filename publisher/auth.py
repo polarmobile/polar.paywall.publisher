@@ -70,83 +70,59 @@ def check_device(request, body):
     # could store these values in order to perform analysis on the types of
     # devices that access products.
     if 'device' not in body:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The device has not been provided.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Make sure the device is a dictionary.
     if isinstance(body['device'], dict) == False:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The device is not a map.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure that the manufacturer of the device has been
     # provided.
     if 'manufacturer' not in body['device']:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The manufacturer has not been provided.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure the manufacturer is of the right type.
     if isinstance(body['device']['manufacturer'], str) == False:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The manufacturer is not a string.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure that the model of the device has been provided.
     if 'model' not in body['device']:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The model has not been provided.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure the model is of the right type.
     if isinstance(body['device']['model'], str) == False:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The model is not a string.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure that the os_version of the device has been provided.
     if 'os_version' not in body['device']:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The os_version has not been provided.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Check to make sure the os_version is of the right type.
     if isinstance(body['device']['os_version'], str) == False:
-        # Generate an error report.
         code = 'InvalidDevice'
         message = 'The os_version is not a string.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # No problems have been found. Return successfully.
@@ -182,25 +158,22 @@ def check_auth_params(request, body):
 
     # When authParams is provided, the type must be a dictionary.
     if isinstance(body['authParams'],dict) == False:
-        # Generate an error report.
         code = 'InvalidAuthParams'
         message = 'The authParams is not a map.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
         # If the value isn't a string, raise an error.
         if isinstance(body['authParams'][key],str) == False:
-            # Generate an error report.
             code = 'InvalidAuthParams'
             message = 'This authParams value is not a string: ' + str(key)
             status = 400
-
-            # Call report_error and return the result.
             return report_error(code, message, request, status)
+
+    # There are no problems, return successfully.
+    return None
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -473,18 +446,17 @@ def auth(request, api, version, format, product_code):
             HTTP Error Code: 400
             Required: No
     '''
-    # Validate the base URL.
+    # Validate the base URL. If check_base_url finds an error with the
+    # request, it will return a response containing the error. If not, it will
+    # return None.
     response = check_base_url(request, api, version, format)
 
-    # If check_base_url finds an error with the request, it will return a
-    # response containing the error. If not, it will return None.
     if response != None:
         return response
 
     # Try to decode the json body. If the body cannot be decoded, raise an
     # error.
     try:
-        # Decode the request body using the json library.
         body = loads(request.body)
 
     except ValueError, exception:
@@ -495,15 +467,19 @@ def auth(request, api, version, format, product_code):
         code = 'InvalidFormat'
         message = 'Could not decode post body. json is expected.'
         status = 400
-
-        # Call report_error and return the result.
         return report_error(code, message, request, status)
 
-    # Check to make sure the device parameter is valid.
+    # Check to make sure the device parameter is valid. If check_device finds
+    # an error with the request, it will return a response containing the
+    # error. If not, it will return None.
     response = check_device(request, body)
+    if response != None:
+        return response
 
-    # If check_device finds an error with the request, it will return a
+    # Check to make sure the authParams parameter is valid. If
+    # check_auth_params finds an error with the request, it will return a
     # response containing the error. If not, it will return None.
+    response = check_auth_params(request, body)
     if response != None:
         return response
 
