@@ -29,6 +29,9 @@
 # Used to process the http request.
 from itty import post, run_itty, get
 
+# Used to validate the values passed into the base url.
+from publisher.utils import check_base_url
+
 # Regex constants used to match URLs.
 API = r'/(?P<api>\w+)'
 VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
@@ -36,7 +39,7 @@ FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
 
-@get(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
+@post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
 def auth(request, api, version, format, product_code):
     '''
     Overview:
@@ -253,18 +256,36 @@ def auth(request, api, version, format, product_code):
 
         InvalidAPI:
 
-            Thrown when the publisher does not recognize the api given.
+            Returned when the publisher does not recognize the requested api.
 
             Code: InvalidAPI
-            Message: The requested api is not implemented: <given api>.
+            Message: The requested api is not implemented: <api>
+            HTTP Error Code: 404
+
+        InvalidVersion:
+
+            Returned when the publisher does not recognize the requested
+            version.
+
+            Code: InvalidVersion
+            Message: The requested version is not implemented: <version>
+            HTTP Error Code: 404
+
+        InvalidFormat:
+
+            Returned when the publisher does not recognize the requested
+            format.
+
+            Code: InvalidFormat
+            Message: The requested format is not implemented: <format>
             HTTP Error Code: 404
     '''
-    # Check to make sure the api is correct.
-    if api != 'paywallproxy':
-        code = 'NoHandler'
-        message = 'No handler could be found for the requested resource.'
-        resource = request.path
+    # Validate the base URL.
+    response = check_base_url(request, api, version, format)
 
-    return '%s, %s, %s, %s' % (api, version, format, product_code)
+    # If check_base_url finds an error with the request, it will return a
+    # response containing the error. If not, it will return None.
+    if response != None:
+        return response
 
-run_itty(host='0.0.0.0', port=8080)
+    return str(request.body)

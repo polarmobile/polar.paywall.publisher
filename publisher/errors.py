@@ -72,10 +72,10 @@ def handle_500(request, exception):
     status = 500
 
     # Call report_error and get the result.
-    result = report_error(code, message, request, status)
+    response = report_error(code, message, request, status)
 
     # Return the result.
-    return result
+    return response.send(request._start_response)
 
 
 @error(404)
@@ -116,7 +116,7 @@ def handle_404(request, exception):
     status = 404
 
     # Call report_error and get the result.
-    result = report_error(code, message, request, status)
+    response = report_error(code, message, request, status)
 
     # Return the result.
-    return result
+    return response.send(request._start_response)

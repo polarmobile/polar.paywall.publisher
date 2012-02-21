@@ -42,21 +42,33 @@ from publisher.utils import report_error, check_base_url
 from publisher.errors import handle_500, handle_404
 
 
+def test_start_response(status, headers):
+    '''
+    This function is a testing replacement for the start_response function
+    provided by the WSGI web framework. It is called by the request object to
+    start the transfer of data back to the client. For testing purposes, this
+    function does not do anything.
+    '''
+    # In python, pass is a keyword that is synonymous for "don't do
+    # anything".
+    pass
+
+
 def create_request(http_path):
     '''
     A helper function used to create fake request objects for testing.
     '''
     # WSGI and itty operate like CGI. They have a dictionary of environment
-    # variables that specify the paraters of the request. For testing, all we
-    # care to specify is the PATH_INFO variable, which is the URL that the
+    # variables that specify the parameters of the request. For testing, all
+    # we care to specify is the PATH_INFO variable, which is the URL that the
     # request is processed with.
     environ = {}
     environ['PATH_INFO'] = http_path
 
     # Create the request object. start_response is a function pointer to an
     # internal function that itty uses to send a request. For the purposes of
-    # testing, it can be ignored.
-    result = Request(environ, start_response=None)
+    # testing, we replace it with a function that does nothing.
+    result = Request(environ, start_response=test_start_response)
 
     # Return the result.
     return result
@@ -194,19 +206,15 @@ class TestErrors(TestCase):
         # Issue the request to the method being tested.
         result = handle_500(request, exception=None)
 
+        print result
+
         # Check the result's type.
-        self.assertIsInstance(result, Response)
+        self.assertIsInstance(result, str)
 
         # Check the result's content.
         content = '{"error": {"message": "An internal server error '\
             'occurred.", "code": "InternalError", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-
-        # Check the result's content type.
-        self.assertEqual(result.content_type, 'application/json')
-
-        # Check the result's status.
-        self.assertEqual(result.status, 500)
+        self.assertEqual(result, content)
 
     def test_handle_404(self):
         '''
@@ -219,18 +227,12 @@ class TestErrors(TestCase):
         result = handle_404(request, exception=None)
 
         # Check the result's type.
-        self.assertIsInstance(result, Response)
+        self.assertIsInstance(result, str)
 
         # Check the result's content.
         content = '{"error": {"message": "No handler could be found for the '\
             'requested resource.", "code": "NoHandler", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-
-        # Check the result's content type.
-        self.assertEqual(result.content_type, 'application/json')
-
-        # Check the result's status.
-        self.assertEqual(result.status, 404)
+        self.assertEqual(result, content)
 
 
 class TestAuth(TestCase):
