@@ -65,6 +65,7 @@ def handle_500(request, exception):
             Code: InternalError
             Message: An internal server error occurred.
             HTTP Error Code: 500
+            Required: No
     '''
     # Generate the error report.
     code = 'InternalError'
@@ -109,6 +110,7 @@ def handle_404(request, exception):
             Code: NoHandler
             Message: No handler could be found for the requested resource.
             HTTP Error Code: 404
+            Required: No
     '''
     # Generate the error report.
     code = 'NoHandler'

@@ -42,7 +42,7 @@ from publisher.utils import report_error, check_base_url
 from publisher.errors import handle_500, handle_404
 
 # Used to test auth handling code.
-from publisher.auth import check_device, auth
+from publisher.auth import check_device, check_auth_params, auth
 
 
 def test_start_response(status, headers):
@@ -497,6 +497,101 @@ class TestAuth(TestCase):
 
         # Issue the request to the method being tested.
         result = check_device(request, body)
+
+        # Check the result.
+        self.assertEqual(result, None)
+
+    def test_check_no_auth_params(self):
+        '''
+        Tests to see if the check_auth_params function passes for a missing
+        authParams parameter.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+
+        # Issue the request to the method being tested.
+        result = check_auth_params(request, body)
+
+        # Check the result.
+        self.assertEqual(result, None)
+
+    def test_check_auth_params_type(self):
+        '''
+        Tests to see if the check_auth_params function checks for an invalid
+        authParams type.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['authParams'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_auth_params(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The authParams is not a map.",' \
+            '"code": "InvalidAuthParams", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_auth_params_type(self):
+        '''
+        Tests to see if the check_auth_params function checks for an invalid
+        authParams value types.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['authParams'] = {}
+        body['authParams']['test'] = []
+
+        # Issue the request to the method being tested.
+        result = check_auth_params(request, body)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "This authParams value is not a '\
+            'string: test", "code": "InvalidAuthParams", "resource": '\
+            '"/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 400)
+
+    def test_check_auth_params(self):
+        '''
+        Tests to see if the check_auth_params with a positive example.
+        '''
+        # Create a test request object.
+        request = create_request('/test/')
+
+        # Create the body to be tested.
+        body = {}
+        body['authParams'] = {}
+        body['authParams']['test'] = 'test'
+
+        # Issue the request to the method being tested.
+        result = check_auth_params(request, body)
 
         # Check the result.
         self.assertEqual(result, None)

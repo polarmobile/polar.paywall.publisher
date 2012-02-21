@@ -63,10 +63,12 @@ def check_device(request, body):
             Code: InvalidDevice
             Message: Varies based on the error.
             HTTP Error Code: 400
+            Required: No
     '''
     # Validate that the device is provided as a parameter to the body. This
     # sample publisher does not store the device, but a production system
-    # could store these values in order to perform analytics.
+    # could store these values in order to perform analysis on the types of
+    # devices that access products.
     if 'device' not in body:
         # Generate an error report.
         code = 'InvalidDevice'
@@ -149,6 +151,56 @@ def check_device(request, body):
 
     # No problems have been found. Return successfully.
     return None
+
+
+def check_auth_params(request, body):
+    '''
+    This function checks the validity of the authParams parameter. It takes the
+    decoded json body of the request and returns a Response object if a
+    problem has been found. If no problems are found, this function returns
+    None.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidAuthParams:
+
+            Returned when the request does not specify the authParams parameter
+            properly.
+
+            Code: InvalidAuthParams
+            Message: Varies based on the error.
+            HTTP Error Code: 400
+            Required: No
+    '''
+    # Note that not having an authParams key is valid.
+    if 'authParams' not in body:
+        return None
+
+    # When authParams is provided, the type must be a dictionary.
+    if isinstance(body['authParams'],dict) == False:
+        # Generate an error report.
+        code = 'InvalidAuthParams'
+        message = 'The authParams is not a map.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Make sure that all the values in the dictionary are strings.
+    for key in body['authParams']:
+        # If the value isn't a string, raise an error.
+        if isinstance(body['authParams'][key],str) == False:
+            # Generate an error report.
+            code = 'InvalidAuthParams'
+            message = 'This authParams value is not a string: ' + str(key)
+            status = 400
+
+            # Call report_error and return the result.
+            return report_error(code, message, request, status)
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -359,12 +411,18 @@ def auth(request, api, version, format, product_code):
             Code: InvalidProduct
             Message: The requested article could not be found.
             HTTP Error Code: 404
+            Required: Yes
 
     Server Errors:
 
         This section documents errors that are persisted on the server and not
         sent to the client. Note that the publisher is free to modify the
         content of these messages as they please.
+
+        Some of the following errors are marked optional. They are included in
+        this example for compelteness and testing purposes. Implementing them
+        makes testing the connection between Polar's server and the publishers
+        server easier.
 
         InvalidAPI:
 
@@ -373,6 +431,7 @@ def auth(request, api, version, format, product_code):
             Code: InvalidAPI
             Message: The requested api is not implemented: <api>
             HTTP Error Code: 404
+            Required: No
 
         InvalidVersion:
 
@@ -382,6 +441,7 @@ def auth(request, api, version, format, product_code):
             Code: InvalidVersion
             Message: The requested version is not implemented: <version>
             HTTP Error Code: 404
+            Required: No
 
         InvalidFormat:
 
@@ -391,6 +451,7 @@ def auth(request, api, version, format, product_code):
             Code: InvalidFormat
             Message: Varies based on the error.
             HTTP Error Code: Varies based on the error.
+            Required: No
 
         InvalidDevice:
 
@@ -400,6 +461,17 @@ def auth(request, api, version, format, product_code):
             Code: InvalidDevice
             Message: Varies based on the error.
             HTTP Error Code: 400
+            Required: No
+
+        InvalidAuthParams:
+
+            Returned when the request does not specify the authParams parameter
+            properly.
+
+            Code: InvalidAuthParams
+            Message: Varies based on the error.
+            HTTP Error Code: 400
+            Required: No
     '''
     # Validate the base URL.
     response = check_base_url(request, api, version, format)
