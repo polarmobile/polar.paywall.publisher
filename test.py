@@ -226,8 +226,8 @@ class TestAuth(TestCase):
 
         # Check the result.
         self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The device has not been provided.", '\
-            '"code": "InvalidDevice", "resource": "/test/"}}'
+        content = '{"error": {"message": "The device has not been provided.",'\
+            ' "code": "InvalidDevice", "resource": "/test/"}}'
         self.assertEqual(result.output, content)
         self.assertEqual(result.content_type, 'application/json')
         self.assertEqual(result.status, 400)
@@ -358,8 +358,8 @@ class TestAuth(TestCase):
 
         # Check the result's type.
         self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The os_version has not been provided.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
+        content = '{"error": {"message": "The os_version has not been '\
+            'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
         self.assertEqual(result.output, content)
         self.assertEqual(result.content_type, 'application/json')
         self.assertEqual(result.status, 400)

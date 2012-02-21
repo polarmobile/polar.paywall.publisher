@@ -157,7 +157,7 @@ def check_auth_params(request, body):
         return None
 
     # When authParams is provided, the type must be a dictionary.
-    if isinstance(body['authParams'],dict) == False:
+    if isinstance(body['authParams'], dict) == False:
         code = 'InvalidAuthParams'
         message = 'The authParams is not a map.'
         status = 400
@@ -166,7 +166,7 @@ def check_auth_params(request, body):
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
         # If the value isn't a string, raise an error.
-        if isinstance(body['authParams'][key],str) == False:
+        if isinstance(body['authParams'][key], str) == False:
             code = 'InvalidAuthParams'
             message = 'This authParams value is not a string: ' + str(key)
             status = 400
