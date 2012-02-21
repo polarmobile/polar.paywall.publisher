@@ -29,8 +29,8 @@
 # Used to process the http request.
 from itty import post, run_itty, get
 
-# Used to validate the values passed into the base url.
-from publisher.utils import check_base_url
+# Used to validate the values passed into the base url and raise errors.
+from publisher.utils import check_base_url, report_error
 
 # Used to decode post bodies that contain json encoded data.
 from json import loads
@@ -40,6 +40,115 @@ API = r'/(?P<api>\w+)'
 VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
 FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
+
+
+def check_device(body):
+    '''
+    This function checks the validity of the device parameter. It takes the
+    decoded json body of the request and returns a Response object if a
+    problem has been found. If no problems are found, this function returns
+    None.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidDevice:
+
+            Returned when the request does not specify the device parameters
+            properly.
+
+            Code: InvalidDevice
+            Message: Varies based on the error.
+            HTTP Error Code: 400
+    '''
+    # Validate that the device is provided as a parameter to the body. This
+    # sample publisher does not store the device, but a production system
+    # could store these values in order to perform analytics.
+    if 'device' not in body:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The device has not been provided.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Make sure the device is a dictionary.
+    if isinstance(bodi['device'], dict) == False:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The device is not a map.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure that the manufacturer of the device has been
+    # provided.
+    if 'manufacturer' not in body['device']:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The manufacturer has not been provided.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the manufacturer is of the right type.
+    if isinstance(body['device']['manufacturer'], str) == False:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The manufacturer is not a string.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure that the model of the device has been provided.
+    if 'model' not in body['device']:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The model has not been provided.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the model is of the right type.
+    if isinstance(body['device']['model'], str) == False:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The model is not a string.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure that the os_version of the device has been provided.
+    if 'os_version' not in body['device']:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The os_version has not been provided.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the os_version is of the right type.
+    if isinstance(body['device']['os_version'], str) == False:
+        # Generate an error report.
+        code = 'InvalidDevice'
+        message = 'The os_version is not a string.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # No problems have been found. Return successfully.
+    return None
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -280,13 +389,48 @@ def auth(request, api, version, format, product_code):
             format.
 
             Code: InvalidFormat
-            Message: The requested format is not implemented: <format>
-            HTTP Error Code: 404
+            Message: Varies based on the error.
+            HTTP Error Code: Varies based on the error.
+
+        InvalidDevice:
+
+            Returned when the request does not specify the device parameters
+            properly.
+
+            Code: InvalidDevice
+            Message: Varies based on the error.
+            HTTP Error Code: 400
     '''
     # Validate the base URL.
     response = check_base_url(request, api, version, format)
 
     # If check_base_url finds an error with the request, it will return a
+    # response containing the error. If not, it will return None.
+    if response != None:
+        return response
+
+    # Try to decode the json body. If the body cannot be decoded, raise an
+    # error.
+    try:
+        # Decode the request body using the json library.
+        body = loads(request.body)
+
+    except ValueError, exception:
+        # If a ValueError occurred, the json decoder could not decode the
+        # body of the request. We need to return an error to the client.
+        # Note that we do not return the body of the request as it could
+        # contain access credentials.
+        code = 'InvalidFormat'
+        message = 'Could not decode post body. json is expected.'
+        status = 400
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the device parameter is valid.
+    response = check_device(body)
+
+    # If check_device finds an error with the request, it will return a
     # response containing the error. If not, it will return None.
     if response != None:
         return response
