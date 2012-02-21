@@ -36,7 +36,7 @@ from mock import patch, MagicMock
 from itty import Request, Response
 
 # Used to test error handling code.
-from publisher.utils import report_error
+from publisher.utils import report_error, check_base_url
 
 # Used to test http error handling code.
 from publisher.errors import handle_500, handle_404
@@ -62,13 +62,13 @@ def create_request(http_path):
     return result
 
 
-class TestErrors(TestCase):
+class TestUtils(TestCase):
     '''
-    Test the code in publisher/errors.py.
+    Test the code in publisher/utils.py.
     '''
     def test_report_error(self):
         '''
-        Tests generation of an error using positive example.
+        Tests generation of an error report.
         '''
         # Generate the example.
         code = 'TestError'
@@ -93,9 +93,100 @@ class TestErrors(TestCase):
         # Check the result's status.
         self.assertEqual(result.status, 200)
 
-    def test_error_500(self):
+    def test_check_base_url_api(self):
         '''
-        Tests handling of a 500 error using a single positive example.
+        Tests base url checking on the api parameter.
+        '''
+        # Generate the example. In this case the only invalid parameter is the
+        # api.
+        request = create_request('/test/')
+        api = 'test'
+        version = 'v1.0.0'
+        format = 'json'
+
+        # Call the check_base_url function to get the result. 
+        result = check_base_url(request, api, version, format)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The requested api is not '\
+            'implemented: test", "code": "InvalidAPI", "resource": "/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 404)
+
+    def test_check_base_url_version(self):
+        '''
+        Tests base url checking on the version parameter.
+        '''
+        # Generate the example. In this case the only invalid parameter is the
+        # version.
+        request = create_request('/test/')
+        api = 'paywallproxy'
+        version = 'test'
+        format = 'json'
+
+        # Call the check_base_url function to get the result. 
+        result = check_base_url(request, api, version, format)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The requested version is not '\
+            'implemented: test", "code": "InvalidVersion", "resource": '\
+            '"/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 404)
+
+    def test_check_base_url_format(self):
+        '''
+        Tests base url checking on the format parameter.
+        '''
+        # Generate the example. In this case the only invalid parameter is the
+        # format.
+        request = create_request('/test/')
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'test'
+
+        # Call the check_base_url function to get the result. 
+        result = check_base_url(request, api, version, format)
+
+        # Check the result's type.
+        self.assertIsInstance(result, Response)
+
+        # Check the result's content.
+        content = '{"error": {"message": "The requested format is not '\
+            'implemented: test", "code": "InvalidFormat", "resource": '\
+            '"/test/"}}'
+        self.assertEqual(result.output, content)
+
+        # Check the result's content type.
+        self.assertEqual(result.content_type, 'application/json')
+
+        # Check the result's status.
+        self.assertEqual(result.status, 404)
+
+
+class TestErrors(TestCase):
+    '''
+    Test the code in publisher/errors.py.
+    '''
+    def test_handle_500(self):
+        '''
+        Tests handling of a 500 error.
         '''
         # Create the request object.
         request = create_request('/test/')
@@ -117,9 +208,9 @@ class TestErrors(TestCase):
         # Check the result's status.
         self.assertEqual(result.status, 500)
 
-    def test_error_404(self):
+    def test_handle_404(self):
         '''
-        Tests handling of a 404 error using a single positive example.
+        Tests handling of a 404 error.
         '''
         # Create the request object.
         request = create_request('/test/')
@@ -146,6 +237,8 @@ class TestAuth(TestCase):
     '''
     Test the code in publisher/auth.py.
     '''
+    pass
+
 
 # If the script is called directly, then the global variable __name__ will
 # be set to main.

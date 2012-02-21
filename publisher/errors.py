@@ -71,7 +71,7 @@ def handle_500(request, exception):
     message = 'An internal server error occurred.'
     status = 500
 
-    # Call create_error and get the result.
+    # Call report_error and get the result.
     result = report_error(code, message, request, status)
 
     # Return the result.
@@ -115,7 +115,7 @@ def handle_404(request, exception):
     message = 'No handler could be found for the requested resource.'
     status = 404
 
-    # Call create_error and get the result.
+    # Call report_error and get the result.
     result = report_error(code, message, request, status)
 
     # Return the result.

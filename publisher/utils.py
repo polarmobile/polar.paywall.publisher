@@ -74,3 +74,84 @@ def report_error(code, message, request, status):
     # Convert the result into json and then package it in an itty response.
     type = 'application/json'
     return Response(dumps(result), content_type=type, status=status)
+
+
+def check_base_url(request, api, version, format):
+    '''
+    The base url for all entry points in this API is as follows:
+
+        /:api/:version/:format
+
+    For this particular project, the api will always be "paywallproxy", the
+    supported version is "v1.0.0" and the only supported format is "json".
+
+    This function examines these common parameters, and raises errors if the
+    the parameters are incorrect. If the parameters are correct, this function
+    returns the None object.
+
+    The errors this function returns are documented below.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidAPI:
+
+            Returned when the publisher does not recognize the requested api.
+
+            Code: InvalidAPI
+            Message: The requested api is not implemented: <api>
+            HTTP Error Code: 404
+
+        InvalidVersion:
+
+            Returned when the publisher does not recognize the requested
+            version.
+
+            Code: InvalidVersion
+            Message: The requested version is not implemented: <version>
+            HTTP Error Code: 404
+
+        InvalidFormat:
+
+            Returned when the publisher does not recognize the requested
+            format.
+
+            Code: InvalidFormat
+            Message: The requested format is not implemented: <format>
+            HTTP Error Code: 404
+    '''
+    # Check to make sure the api is correct.
+    if api != 'paywallproxy':
+        # If the api doesn't match then generate an error report.
+        code = 'InvalidAPI'
+        message = 'The requested api is not implemented: ' + str(api)
+        status = 404
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the version is correct.
+    elif version != 'v1.0.0':
+        # If the version doesn't match then generate an error report.
+        code = 'InvalidVersion'
+        message = 'The requested version is not implemented: ' + str(version)
+        status = 404
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # Check to make sure the format is correct.
+    elif format != 'json':
+        # If the format doesn't match then generate an error report.
+        code = 'InvalidFormat'
+        message = 'The requested format is not implemented: ' + str(format)
+        status = 404
+
+        # Call report_error and return the result.
+        return report_error(code, message, request, status)
+
+    # No errors were found, so return None.
+    return None

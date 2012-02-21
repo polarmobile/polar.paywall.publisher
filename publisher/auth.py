@@ -258,7 +258,6 @@ def auth(request, api, version, format, product_code):
             Code: InvalidAPI
             Message: The requested api is not implemented: <given api>.
             HTTP Error Code: 404
-
     '''
     # Check to make sure the api is correct.
     if api != 'paywallproxy':
