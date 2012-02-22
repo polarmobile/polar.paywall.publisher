@@ -30,8 +30,7 @@
 from itty import post, run_itty, get
 
 # Import error handling entry points.
-#from publisher.errors import handle_500, handle_404
-from publisher.errors import handle_404
+from publisher.errors import bad_syntax, forbidden, not_found, internal_error
 
 # Import auth handling entry points.
 from publisher.auth import auth

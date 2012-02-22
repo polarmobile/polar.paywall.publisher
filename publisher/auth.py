@@ -30,7 +30,7 @@
 from itty import post, run_itty, get
 
 # Used to validate the values passed into the base url and raise errors.
-from publisher.utils import check_base_url, report_error
+from publisher.utils import check_base_url, raise_error
 
 # Used to decode post bodies that contain json encoded data.
 from json import loads
@@ -42,12 +42,11 @@ FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
 
-def check_device(request, body):
+def check_device(url, body):
     '''
     This function checks the validity of the device parameter. It takes the
-    decoded json body of the request and returns a Response object if a
-    problem has been found. If no problems are found, this function returns
-    None.
+    decoded json body of the request and raises an error if a problem is
+    found.
 
     Server Errors:
 
@@ -65,76 +64,60 @@ def check_device(request, body):
             HTTP Error Code: 400
             Required: No
     '''
+    # All of the errors in this function share a common code and status.
+    code = 'InvalidDevice'
+    status = 400
+
     # Validate that the device is provided as a parameter to the body. This
     # sample publisher does not store the device, but a production system
     # could store these values in order to perform analysis on the types of
     # devices that access products.
     if 'device' not in body:
-        code = 'InvalidDevice'
         message = 'The device has not been provided.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Make sure the device is a dictionary.
     if isinstance(body['device'], dict) == False:
-        code = 'InvalidDevice'
         message = 'The device is not a map.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure that the manufacturer of the device has been
     # provided.
     if 'manufacturer' not in body['device']:
-        code = 'InvalidDevice'
         message = 'The manufacturer has not been provided.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure the manufacturer is of the right type.
     if isinstance(body['device']['manufacturer'], unicode) == False:
-        code = 'InvalidDevice'
         message = 'The manufacturer is not a string.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure that the model of the device has been provided.
     if 'model' not in body['device']:
-        code = 'InvalidDevice'
         message = 'The model has not been provided.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure the model is of the right type.
     if isinstance(body['device']['model'], unicode) == False:
-        code = 'InvalidDevice'
         message = 'The model is not a string.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure that the os_version of the device has been provided.
     if 'os_version' not in body['device']:
-        code = 'InvalidDevice'
         message = 'The os_version has not been provided.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure the os_version is of the right type.
     if isinstance(body['device']['os_version'], unicode) == False:
-        code = 'InvalidDevice'
         message = 'The os_version is not a string.'
-        status = 400
-        return report_error(code, message, request, status)
-
-    # No problems have been found. Return successfully.
-    return None
+        raise_error(url, code, message, status)
 
 
-def check_auth_params(request, body):
+def check_auth_params(url, body):
     '''
     This function checks the validity of the authParams parameter. It takes the
-    decoded json body of the request and returns a Response object if a
-    problem has been found. If no problems are found, this function returns
-    None.
+    decoded json body of the request and raises an exception if a problem is
+    found.
 
     Server Errors:
 
@@ -152,28 +135,25 @@ def check_auth_params(request, body):
             HTTP Error Code: 400
             Required: No
     '''
+    # All of the errors in this function share a common code and status.
+    code = 'InvalidAuthParams'
+    status = 400
+
     # Note that not having an authParams key is valid.
     if 'authParams' not in body:
         return None
 
     # When authParams is provided, the type must be a dictionary.
     if isinstance(body['authParams'], dict) == False:
-        code = 'InvalidAuthParams'
         message = 'The authParams is not a map.'
-        status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
         # If the value isn't a string, raise an error.
         if isinstance(body['authParams'][key], unicode) == False:
-            code = 'InvalidAuthParams'
             message = 'This authParams value is not a string: ' + unicode(key)
-            status = 400
-            return report_error(code, message, request, status)
-
-    # There are no problems, return successfully.
-    return None
+            raise_error(url, code, message, status)
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -446,12 +426,11 @@ def auth(request, api, version, format, product_code):
             HTTP Error Code: 400
             Required: No
     '''
-    # Validate the base URL. If check_base_url finds an error with the
-    # request, it will return a response containing the error. If not, it will
-    # return None.
-    response = check_base_url(request, api, version, format)
-    if response != None:
-        return response
+    # Store the full URL string so that it can be used to report errors.
+    url = request.path
+
+    # Validate the base URL.
+    check_base_url(url, api, version, format)
 
     # Try to decode the json body. If the body cannot be decoded, raise an
     # error.
@@ -466,21 +445,13 @@ def auth(request, api, version, format, product_code):
         code = 'InvalidFormat'
         message = 'Could not decode post body. json is expected.'
         status = 400
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
-    # Check to make sure the device parameter is valid. If check_device finds
-    # an error with the request, it will return a response containing the
-    # error. If not, it will return None.
-    response = check_device(request, body)
-    if response != None:
-        return response
+    # Check to make sure the device parameter is valid.
+    response = check_device(url, body)
 
-    # Check to make sure the authParams parameter is valid. If
-    # check_auth_params finds an error with the request, it will return a
-    # response containing the error. If not, it will return None.
-    response = check_auth_params(request, body)
-    if response != None:
-        return response
+    # Check to make sure the authParams parameter is valid.
+    response = check_auth_params(url, body)
 
     # Check to see if the supplied credentials match those on record.
         # Check to see if the user's account is active.

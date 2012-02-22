@@ -33,13 +33,16 @@ from unittest import TestCase, main
 from mock import patch, MagicMock
 
 # Used to generate fake http requests.
-from itty import Request, Response
+from itty import Request
 
-# Used to test error handling code.
-from publisher.utils import report_error, check_base_url
+# Used to test error handling code in errors.py.
+from json import dumps
+from publisher.errors import bad_syntax, forbidden, not_found, internal_error
+from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
+                             JsonAppError)
 
-# Used to test http error handling code.
-from publisher.errors import handle_500, handle_404
+# Used to test error encoding.
+from publisher.utils import encode_error, raise_error, check_base_url
 
 # Used to test auth handling code.
 from publisher.auth import check_device, check_auth_params, auth
@@ -81,130 +84,328 @@ class TestUtils(TestCase):
     '''
     Test the code in publisher/utils.py.
     '''
-    def test_report_error(self):
+    def test_encode_error(self):
         '''
         Tests generation of an error report.
         '''
-        # Generate the example.
+        # Create the seed data for the test.
+        url = '/test/'
         code = 'TestError'
         message = 'This is a test error.'
-        request = create_request('/test/')
-        status = 200
 
-        # Call report_error and get the result.
-        result = report_error(code, message, request, status)
+        # Call encode_error and get the result.
+        result = encode_error(url, code, message)
 
         # Check the result.
-        self.assertIsInstance(result, Response)
         content = '{"error": {"message": "This is a test error.", '\
             '"code": "TestError", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 200)
+        self.assertEqual(result, content)
+
+    def test_raise_error_bad_syntax(self):
+        '''
+        Tests generation of a 400 error.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        code = 'TestError'
+        message = 'This is a test error.'
+        status = 400
+
+        # Call raise_error and get the result.
+        try:
+            raise_error(url, code, message, status)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = u'{"error": {"message": "This is a test error.", '\
+                '"code": "TestError", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_raise_error_forbidden(self):
+        '''
+        Tests generation of a 403 error.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        code = 'TestError'
+        message = 'This is a test error.'
+        status = 403
+
+        # Call raise_error and get the result.
+        try:
+            raise_error(url, code, message, status)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonForbidden)
+            content = u'{"error": {"message": "This is a test error.", '\
+                '"code": "TestError", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_raise_error_not_found(self):
+        '''
+        Tests generation of a 404 error.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        code = 'TestError'
+        message = 'This is a test error.'
+        status = 404
+
+        # Call raise_error and get the result.
+        try:
+            raise_error(url, code, message, status)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonNotFound)
+            content = u'{"error": {"message": "This is a test error.", '\
+                '"code": "TestError", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_raise_error_internal_error(self):
+        '''
+        Tests generation of a 500 error.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        code = 'TestError'
+        message = 'This is a test error.'
+        status = 500
+
+        # Call raise_error and get the result.
+        try:
+            raise_error(url, code, message, status)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonAppError)
+            content = u'{"error": {"message": "This is a test error.", '\
+                '"code": "TestError", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_base_url_api(self):
         '''
         Tests base url checking on the api parameter.
         '''
-        # Generate the example. In this case the only invalid parameter is the
-        # api.
-        request = create_request('/test/')
+        # Create the seed data for the test.
+        url = '/test/'
         api = 'test'
         version = 'v1.0.0'
         format = 'json'
 
-        # Call the check_base_url function to get the result.
-        result = check_base_url(request, api, version, format)
+        # Call the check_base_url function and expect an exception.
+        try:
+            check_base_url(url, api, version, format)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The requested api is not '\
-            'implemented: test", "code": "InvalidAPI", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 404)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonNotFound)
+            content = '{"error": {"message": "The requested api is not '\
+                'implemented: test", "code": "InvalidAPI", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_base_url_version(self):
         '''
         Tests base url checking on the version parameter.
         '''
-        # Generate the example. In this case the only invalid parameter is the
-        # version.
-        request = create_request('/test/')
+        # Create the seed data for the test.
+        url = '/test/'
         api = 'paywallproxy'
         version = 'test'
         format = 'json'
 
-        # Call the check_base_url function to get the result.
-        result = check_base_url(request, api, version, format)
+        # Call the check_base_url function and expect an exception.
+        try:
+            check_base_url(url, api, version, format)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The requested version is not '\
-            'implemented: test", "code": "InvalidVersion", "resource": '\
-            '"/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 404)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonNotFound)
+            content = '{"error": {"message": "The requested version is not '\
+                'implemented: test", "code": "InvalidVersion", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_base_url_format(self):
         '''
         Tests base url checking on the format parameter.
         '''
-        # Generate the example. In this case the only invalid parameter is the
-        # format.
-        request = create_request('/test/')
+        # Create the seed data for the test.
+        url = '/test/'
         api = 'paywallproxy'
         version = 'v1.0.0'
         format = 'test'
 
-        # Call the check_base_url function to get the result.
-        result = check_base_url(request, api, version, format)
+        # Call the check_base_url function and expect an exception.
+        try:
+            check_base_url(url, api, version, format)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The requested format is not '\
-            'implemented: test", "code": "InvalidFormat", "resource": '\
-            '"/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 404)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonNotFound)
+            content = '{"error": {"message": "The requested format is not '\
+                'implemented: test", "code": "InvalidFormat", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
 
 class TestErrors(TestCase):
     '''
     Test the code in publisher/errors.py.
     '''
-    def test_handle_500(self):
+    def test_bad_syntax_pass(self):
         '''
-        Tests handling of a 500 error.
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
         '''
-        # Create the request object.
+        # Create the seed data for the test.
         request = create_request('/test/')
+        content = unicode(dumps('test'))
+        exception = JsonBadSyntax(content)
 
         # Issue the request to the method being tested.
-        result = handle_500(request, exception=None)
+        result = bad_syntax(request, exception)
 
         # Check the result.
-        self.assertIsInstance(result, str)
-        content = '{"error": {"message": "An internal server error '\
-            'occurred.", "code": "InternalError", "resource": "/test/"}}'
         self.assertEqual(result, content)
 
-    def test_handle_404(self):
+    def test_bad_syntax_unknown_exception(self):
         '''
-        Tests handling of a 404 error.
+        Checks to make sure that the framework fails when an unknown exception
+        is passed.
         '''
-        # Create the request object.
+        # Create the seed data for the test.
         request = create_request('/test/')
+        exception = Exception(u'test')
+
+        # Issue the request to the method being tested and ensure it raises
+        # an assertion error.
+        with self.assertRaises(AssertionError):
+            result = bad_syntax(request, exception)
+
+    def test_forbidden_pass(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        content = unicode(dumps('test'))
+        exception = JsonForbidden(content)
 
         # Issue the request to the method being tested.
-        result = handle_404(request, exception=None)
+        result = forbidden(request, exception)
 
         # Check the result.
-        self.assertIsInstance(result, str)
-        content = '{"error": {"message": "No handler could be found for the '\
+        self.assertEqual(result, content)
+
+    def test_forbidden_unknown_exception(self):
+        '''
+        Checks to make sure that the framework fails when an unknown exception
+        is passed.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        exception = Exception(u'test')
+
+        # Issue the request to the method being tested and ensure it raises
+        # an assertion error.
+        with self.assertRaises(AssertionError):
+            result = forbidden(request, exception)
+
+    def test_not_found_pass(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        content = unicode(dumps('test'))
+        exception = JsonNotFound(content)
+
+        # Issue the request to the method being tested.
+        result = not_found(request, exception)
+
+        # Check the result.
+        self.assertEqual(result, content)
+
+    def test_not_found_unknown_exception(self):
+        '''
+        Tests handling of a 404 error when an unknown exception is passed.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        exception = Exception(u'test')
+
+        # Issue the request to the method being tested.
+        result = not_found(request, exception)
+
+        # Check the result.
+        content = u'{"error": {"message": "No handler could be found for the '\
             'requested resource.", "code": "NoHandler", "resource": "/test/"}}'
+        self.assertEqual(result, content)
+
+    def test_internal_error_pass(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        content = unicode(dumps('test'))
+        exception = JsonAppError(content)
+
+        # Issue the request to the method being tested.
+        result = internal_error(request, exception)
+
+        # Check the result.
+        self.assertEqual(result, content)
+
+    def test_internal_error_unknown_exception(self):
+        '''
+        Tests handling of a 500 error when an unknown exception is passed.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        exception = Exception(u'test')
+
+        # Issue the request to the method being tested.
+        result = internal_error(request, exception)
+
+        # Check the result.
+        content = u'{"error": {"message": "An internal server error '\
+            'occurred.", "code": "InternalError", "resource": "/test/"}}'
         self.assertEqual(result, content)
 
 

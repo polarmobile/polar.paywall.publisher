@@ -29,20 +29,54 @@
 # Used to encode the resulting error into json.
 from json import dumps
 
-# Used to contain the itty response with the proper headers.
-from itty import Response
+# Used to generate exceptions.
+from itty import RequestError, NotFound, AppError, Forbidden
 
 
-def report_error(code, message, request, status):
+class JsonBadSyntax(RequestError):
     '''
-    For Client Errors (400-series) and Server Errors (500-series), an error
-    report should be returned. Note that some errors will be returned to the
-    client on their device. It is up to the publisher to ensure the  quality
-    of the content of these messages.
+    Unfortunately the itty framework defines a minimal set of HTTP exceptions.
+    To accommodate HTTP 400 errors (bad syntax), we need to inherit from the
+    error base class and create a new exception. To differentiate between
+    a normal exception, and an exception that is json encoded, the class name
+    is prepended with json.
+    '''
+    status = 400
 
-    Error are encoded using json. The body of the error is a json map with a
-    key called "error". The "error" value is another map with the following
-    parameters:
+
+class JsonForbidden(Forbidden):
+    '''
+    To differentiate between a normal exception, and an exception that has json
+    encoded content, the class name is prepended with json.
+    '''
+    # The pass keyword tells python to "do nothing".
+    pass
+
+
+class JsonNotFound(NotFound):
+    '''
+    To differentiate between a normal exception, and an exception that has json
+    encoded content, the class name is prepended with json.
+    '''
+    # The pass keyword tells python to "do nothing".
+    pass
+
+
+class JsonAppError(AppError):
+    '''
+    To differentiate between a normal exception, and an exception that has json
+    encoded content, the class name is prepended with json.
+    '''
+    # The pass keyword tells python to "do nothing".
+    pass
+
+
+def encode_error(url, code, message):
+    '''
+    This utility function is called by raise_error to encode the url, code and
+    message parameters. Error are encoded using json. The body of the error is
+    a json map with a key called "error". The "error" value is another map with
+    the following parameters:
 
      * "code"
      * "message"
@@ -55,13 +89,12 @@ def report_error(code, message, request, status):
     "message" is a description of the error. Note that this message should
     never contain a users password.
 
-    "resource" is the resource URI the request was attempting to access.
+    "resource" is the resource URL the request was attempting to access.
 
-    This function takes the error code, message, request object and the status
-    (http error code) and creates a response object with the content type
-    properly set.
+    This function takes the url, code and message and returns a json string
+    containing the encoded values.
     '''
-    # Create a hash table to store the result.
+    # Create a hash table to store the message.
     result = {}
     result['error'] = {}
 
@@ -69,14 +102,46 @@ def report_error(code, message, request, status):
     # matter as this is a hash table.
     result['error']['code'] = code
     result['error']['message'] = message
-    result['error']['resource'] = request.path
+    result['error']['resource'] = url
 
-    # Convert the result into json and then package it in an itty response.
-    type = 'application/json'
-    return Response(dumps(result), content_type=type, status=status)
+    # Encode the message as json and return.
+    return unicode(dumps(result))
 
 
-def check_base_url(request, api, version, format):
+def raise_error(url, code, message, status):
+    '''
+    For Client Errors (400-series) and Server Errors (500-series), an error
+    report should be returned. Note that some errors will be returned to the
+    client on their device. It is up to the publisher to ensure the  quality
+    of the content of these messages. See the encode_error function for
+    information regarding how errors are encoded.
+
+    This function takes the url, error code, message and the status (http error
+    code) and creates an exception object with the parameters encoded. It then
+    raises the error. The itty framework will then catch these errors and add
+    the proper header encodings. See error.py for more details.
+
+    Currently, the only supported status codes are 400, 403, 404 and 500.
+    In all cases, the traceback is hidden to prevent any details of the
+    internal implementation from leaking outside the framework.
+    '''
+    # Encode the error as a json string.
+    message = encode_error(url, code, message)
+
+    # Raise the appropriate error, based on the status. Note that the stack
+    # trace is hidden to prevent any internal information from leaking.
+    if status == 400:
+        raise JsonBadSyntax(message, hide_traceback=True)
+    elif status == 403:
+        raise JsonForbidden(message, hide_traceback=True)
+    elif status == 404:
+        raise JsonNotFound(message, hide_traceback=True)
+    else:
+        # If the status is not supported, we use an error 500.
+        raise JsonAppError(message, hide_traceback=True)
+
+
+def check_base_url(url, api, version, format):
     '''
     The base url for all entry points in this API is as follows:
 
@@ -86,8 +151,7 @@ def check_base_url(request, api, version, format):
     supported version is "v1.0.0" and the only supported format is "json".
 
     This function examines these common parameters, and raises errors if the
-    parameters are incorrect. If the parameters are correct, this function
-    returns the None object.
+    parameters are incorrect.
 
     The errors this function returns are documented below.
 
@@ -123,26 +187,23 @@ def check_base_url(request, api, version, format):
             Message: The requested format is not implemented: <format>
             HTTP Error Code: 404
     '''
+    # All of the errors in this function share a common status.
+    status = 404
+
     # Check to make sure the api is correct.
     if api != 'paywallproxy':
         code = 'InvalidAPI'
         message = 'The requested api is not implemented: ' + str(api)
-        status = 404
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure the version is correct.
     elif version != 'v1.0.0':
         code = 'InvalidVersion'
         message = 'The requested version is not implemented: ' + str(version)
-        status = 404
-        return report_error(code, message, request, status)
+        raise_error(url, code, message, status)
 
     # Check to make sure the format is correct.
     elif format != 'json':
         code = 'InvalidFormat'
         message = 'The requested format is not implemented: ' + str(format)
-        status = 404
-        return report_error(code, message, request, status)
-
-    # No errors were found, so return None.
-    return None
+        raise_error(url, code, message, status)
