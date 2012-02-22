@@ -86,7 +86,7 @@ def check_base_url(request, api, version, format):
     supported version is "v1.0.0" and the only supported format is "json".
 
     This function examines these common parameters, and raises errors if the
-    the parameters are incorrect. If the parameters are correct, this function
+    parameters are incorrect. If the parameters are correct, this function
     returns the None object.
 
     The errors this function returns are documented below.

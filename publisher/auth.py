@@ -201,7 +201,7 @@ def auth(request, api, version, format, product_code):
 
         An auth-scheme token is expected when a call is made to this API end
         point. It must conform to RFC 2617 specifications. The *Authorization*
-        header has the follwoing form:
+        header has the following form:
 
             Authorization: PolarPaywallProxyAuthv1.0.0
 
@@ -329,14 +329,14 @@ def auth(request, api, version, format, product_code):
 
         The following parameters are returned by this API end point. The
         resposne is json encoded. It has two keys; "sessionKey" and "products".
-        "sessionKey" is a key that allows the client to reauthenticate without
+        "sessionKey" is a key that allows the client to re-authenticate without
         the supplied authentication parameters. "products" is a list of product
         identifiers that the user has access to.
 
         sessionKey:
 
-            A key that allows the client to reauthenticate without the supplied
-            authentication parameters.
+            A key that allows the client to re-authenticate without the
+            supplied authentication parameters.
 
             Availability: >= v1.0.0
             Required: Yes
@@ -393,7 +393,7 @@ def auth(request, api, version, format, product_code):
         content of these messages as they please.
 
         Some of the following errors are marked optional. They are included in
-        this example for compelteness and testing purposes. Implementing them
+        this example for completeness and testing purposes. Implementing them
         makes testing the connection between Polar's server and the publishers
         server easier.
 
@@ -450,7 +450,6 @@ def auth(request, api, version, format, product_code):
     # request, it will return a response containing the error. If not, it will
     # return None.
     response = check_base_url(request, api, version, format)
-
     if response != None:
         return response
 
@@ -483,4 +482,14 @@ def auth(request, api, version, format, product_code):
     if response != None:
         return response
 
-    return str(request.body)
+    # Check to see if the supplied credentials match those on record.
+        # Check to see if the user's account is active.
+
+    # Check to see if the user has access to the requested product.
+
+    # Generate a session key for the user.
+
+    # Get a list of products that the user has access to.
+
+    # Return successfully.
+    return str(request._environ)

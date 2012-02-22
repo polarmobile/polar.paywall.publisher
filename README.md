@@ -13,8 +13,21 @@ This project is a simple sample web server for the Polar Mobile Paywall API.
 	* __API__
 		* __Client to Server__
 		* __Server to Publisher__
- * __Deployment__: An overview of how the server should be deployed.
- * __Errors__: An overview of error reporting.
+ * __Sample Publisher__: An overview of this project.
+    * __Minimum Requirements__
+    * __Installation__
+    * __Moving Parts__
+    * __utils.py__
+    * __errors.py__
+    * __auth.py__
+    * __validate.py__
+    * __model.py__
+    * __credentials.py__
+    * __test.py__
+    * __runserver.py__
+    * __setup.py__
+ * __Deployment__: A brief description of how the server should be deployed.
+ * __Errors__: A description of error reporting.
 	* __Error Reports__
 		* __id__
 		* __code__
@@ -93,6 +106,93 @@ They are described for completeness.
 
  * __Authenticate__: Send user credentials to the __publisher__ and get a key back.
  * __Product Access__: Request permission to serve content to the client.
+
+## Sample Publisher ##
+
+This project is a sample implementation of a publisher server. It is written in
+Python and meant to serve as a reference for implementation. The sample is not
+fully functional and takes several shortcuts during implementation; it should
+under no circumstances be used in production.
+
+This section provides an overview of the sample and the contents of the various
+files used in its implementation.
+
+### Minimum Requirements ###
+
+In order to run this sample, your system should have Python 2.6 or greater
+installed and accessible from your command prompt. You will also need the
+itty package, version 0.8.0 or greater.
+
+### Installation ###
+
+Note that installation is not required in order to test or run this sample. In
+order to run this sample, issue the following command to your command prompt:
+
+    python runserver.py
+
+In order to install this sample, run the following command:
+
+    python setup.py install
+
+### Moving Parts ###
+
+The sample implementation contains three main moving parts:
+    
+    * __auth.py__ := A request handler that authorizes the user.
+    * __validate.py__ := A request handler that grants the user access to a product.
+    * __model.py__ := A data store used to store and fetch usernames and passwords.
+
+All other files simply provide supporting functionality to achieve these three
+main operations.
+
+### utils.py ###
+
+This file contains two functions; report\_error and check\_base\_url.
+report\_error formats error messages in a way expected by the __Polar Server__.
+check\_base\_url validates the common parts of the url for all API entry points.
+
+### errors.py ###
+
+This file contains default handlers for two common http errors; 500 and 404.
+While it is not mandatory to implement these handlers, having them will make
+deployment more secure and easier to debug.
+
+### auth.py ###
+
+The auth function in this file is a handler used to authenticate a user, using
+their supplied authentication credentials. It also supplies two additional
+functions (check\_device, and check\_auth\_params) that check the validity of
+the parameters passed to the auth function.
+
+### validate.py ###
+### model.py ###
+
+In order to simplify the design of this sample, the state of the system is
+stored in memory, as opposed to a database. The server is then run in a
+single process with multiple threads. The model class contains a singleton
+that stores the state of the server.
+
+### credentials.py ###
+### test.py ###
+
+A series of unit tests used during the development of this project. To run the
+unit test suite, issue the following command on your terminal:
+
+    python test.py
+
+### runserver.py ###
+
+A script that is used to run the sample server on port 8080. Note that this
+script should only ever be used for testing purposes and not in production. To
+run this script directly, issue the following command on your terminal:
+
+    python runserver.py
+
+### setup.py ###
+
+Used to install the sample server. Note that it is not necessary to install the
+same server in order to test with it. The runserver.py script can be called
+directly as long as the stated requirements are met.
 
 ## Deployment ##
 
