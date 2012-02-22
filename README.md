@@ -33,6 +33,7 @@ This project is a simple sample web server for the Polar Mobile Paywall API.
 		* __code__
 		* __resource__
 		* __Example__
+ * __Creating Users__: How to create test users and products.
 
 ## Definitions ##
 
@@ -255,3 +256,9 @@ Example Error Response:
             "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b"
         }
     }
+
+## Creating Users ##
+
+This section describes how to create test users and products. To add a new user
+or set of products to the test system, modify the create\_users function in the
+model class in model.py
