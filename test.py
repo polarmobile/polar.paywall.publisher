@@ -418,20 +418,20 @@ class TestAuth(TestCase):
         Tests to see if the check_device function checks for a missing device.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['test'] = 'test'
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The device has not been provided.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The device has not been '\
+                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_device_type(self):
         '''
@@ -439,20 +439,20 @@ class TestAuth(TestCase):
         type.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = 'test'
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The device is not a map.", '\
-            '"code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The device is not a map.", '\
+                '"code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_manufacturer_exists(self):
         '''
@@ -460,20 +460,20 @@ class TestAuth(TestCase):
         manufacturer.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The manufacturer has not been '\
-            'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The manufacturer has not been '\
+                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_manufacturer_type(self):
         '''
@@ -481,21 +481,21 @@ class TestAuth(TestCase):
         manufacturer type.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = []
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The manufacturer is not a string.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The manufacturer is not a '\
+                'string.", "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_model_exists(self):
         '''
@@ -503,21 +503,21 @@ class TestAuth(TestCase):
         model.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = u'test'
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The model has not been provided.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The model has not been '\
+                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_model_type(self):
         '''
@@ -525,22 +525,22 @@ class TestAuth(TestCase):
         model type.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = u'test'
         body['device']['model'] = []
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The model is not a string.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The model is not a string.",'\
+                ' "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_os_version_exists(self):
         '''
@@ -548,22 +548,22 @@ class TestAuth(TestCase):
         os_version.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = u'test'
         body['device']['model'] = u'test'
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result's type.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The os_version has not been '\
-            'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The os_version has not been '\
+                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_os_version_type(self):
         '''
@@ -571,23 +571,23 @@ class TestAuth(TestCase):
         os_version type.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = u'test'
         body['device']['model'] = u'test'
         body['device']['os_version'] = []
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
+        # Call the check_device function and expect an exception.
+        try:
+            check_device(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The os_version is not a string.",'\
-            ' "code": "InvalidDevice", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The os_version is not a string.",'\
+                ' "code": "InvalidDevice", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_device(self):
         '''
@@ -595,18 +595,16 @@ class TestAuth(TestCase):
         that None is returned.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['device'] = {}
         body['device']['manufacturer'] = u'test'
         body['device']['model'] = u'test'
         body['device']['os_version'] = u'test'
 
-        # Issue the request to the method being tested.
-        result = check_device(request, body)
-
-        # Check the result.
-        self.assertEqual(result, None)
+        # Issue the request to the method being tested. The function should
+        # not do anything.
+        check_device(url, body)
 
     def test_check_no_auth_params(self):
         '''
@@ -614,14 +612,12 @@ class TestAuth(TestCase):
         authParams parameter.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
 
-        # Issue the request to the method being tested.
-        result = check_auth_params(request, body)
-
-        # Check the result.
-        self.assertEqual(result, None)
+        # Issue the request to the method being tested. The function should not
+        # do anything.
+        result = check_auth_params(url, body)
 
     def test_check_auth_params_type(self):
         '''
@@ -629,20 +625,20 @@ class TestAuth(TestCase):
         authParams type.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['authParams'] = u'test'
 
-        # Issue the request to the method being tested.
-        result = check_auth_params(request, body)
+        # Call the check_auth_params function and expect an exception.
+        try:
+            check_auth_params(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "The authParams is not a map.",' \
-            '"code": "InvalidAuthParams", "resource": "/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authParams is not a map.",' \
+                '"code": "InvalidAuthParams", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_auth_params_type(self):
         '''
@@ -650,38 +646,36 @@ class TestAuth(TestCase):
         authParams value types.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['authParams'] = {}
         body['authParams']['test'] = []
 
-        # Issue the request to the method being tested.
-        result = check_auth_params(request, body)
+        # Call the check_auth_params function and expect an exception.
+        try:
+            check_auth_params(url, body)
 
-        # Check the result.
-        self.assertIsInstance(result, Response)
-        content = '{"error": {"message": "This authParams value is not a '\
-            'string: test", "code": "InvalidAuthParams", "resource": '\
-            '"/test/"}}'
-        self.assertEqual(result.output, content)
-        self.assertEqual(result.content_type, 'application/json')
-        self.assertEqual(result.status, 400)
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "This authParams value is not a '\
+                'string: test", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
     def test_check_auth_params(self):
         '''
         Tests to see if the check_auth_params with a positive example.
         '''
         # Create seed data for the test.
-        request = create_request('/test/')
+        url = '/test/'
         body = {}
         body['authParams'] = {}
         body['authParams']['test'] = u'test'
 
-        # Issue the request to the method being tested.
-        result = check_auth_params(request, body)
-
-        # Check the result.
-        self.assertEqual(result, None)
+        # Issue the request to the method being tested. The function should not
+        # do anything.
+        result = check_auth_params(url, body)
 
 
 # If the script is called directly, then the global variable __name__ will
