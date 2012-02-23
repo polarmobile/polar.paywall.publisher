@@ -35,11 +35,62 @@ from publisher.utils import check_base_url, raise_error
 # Used to decode post bodies that contain json encoded data.
 from json import loads
 
+# Used to authenticate a user to the data model.
+from publisher.model import model
+
 # Regex constants used to match URLs.
 API = r'/(?P<api>\w+)'
 VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
 FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
+
+
+def decode_body(url, body):
+    '''
+    This function checks the validity of the body parameter. It takes the
+    request body and returns python objects by decoding the body using
+    json.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidFormat:
+
+            Returned when the publisher does not recognize the requested
+            format.
+
+            Code: InvalidFormat
+            Message: Varies with the error.
+            HTTP Error Code: 400.
+            Required: No
+    '''
+    # Try to decode the json body. If the body cannot be decoded, raise an
+    # error.
+    try:
+        json_body = loads(body)
+
+    except ValueError, exception:
+        # If a ValueError occurred, the json decoder could not decode the
+        # body of the request. We need to return an error to the client.
+        # Note that we do not return the body of the request as it could
+        # contain access credentials.
+        code = 'InvalidFormat'
+        message = 'Could not decode post body. json is expected.'
+        status = 400
+        raise_error(url, code, message, status)
+
+    # Make sure the body has one or two parameters and no more.
+    if len(json_body) != 1 or len(json_body) != 2:
+        code = 'InvalidFormat'
+        message = 'Post body has an invalid number of parameters.'
+        status = 400
+        raise_error(url, code, message, status)
+
+    # Return the decoded body.
+    return json_body
 
 
 def check_device(url, body):
@@ -511,7 +562,7 @@ def auth(request, api, version, format, product_code):
 
             Code: InvalidFormat
             Message: Varies with the error.
-            HTTP Error Code: Varies with the error.
+            HTTP Error Code: 400.
             Required: No
 
         InvalidDevice:
@@ -540,20 +591,8 @@ def auth(request, api, version, format, product_code):
     # Validate the base URL.
     check_base_url(url, api, version, format)
 
-    # Try to decode the json body. If the body cannot be decoded, raise an
-    # error.
-    try:
-        body = loads(request.body)
-
-    except ValueError, exception:
-        # If a ValueError occurred, the json decoder could not decode the
-        # body of the request. We need to return an error to the client.
-        # Note that we do not return the body of the request as it could
-        # contain access credentials.
-        code = 'InvalidFormat'
-        message = 'Could not decode post body. json is expected.'
-        status = 400
-        raise_error(url, code, message, status)
+    # Decode the json body from the post body.
+    body = decode_body(url, request.body)
 
     # Check to make sure the device parameter is valid.
     check_device(url, body)
@@ -566,12 +605,13 @@ def auth(request, api, version, format, product_code):
     # are there.
     check_publisher_auth_params(url, body)
 
-    # Check to see if the supplied credentials match those on record.
-        # Check to see if the user's account is active.
+    # Extract the username and password from the body.
+    username = body['authParams']['username']
+    password = body['authParams']['password']
 
-    # Check to see if the user has access to the requested product.
-
-    # Generate a session key for the user.
+    # Authenticate the user.
+    data_model = model()
+    #session_id = data_model.authenticate_user(
 
     # Get a list of products that the user has access to.
 

@@ -45,7 +45,7 @@ from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
 from publisher.utils import encode_error, raise_error, check_base_url
 
 # Used to test auth handling code.
-from publisher.auth import (check_device, check_auth_params, auth,
+from publisher.auth import (decode_body, check_device, check_auth_params, auth,
                             check_publisher_auth_params)
 
 # Used to test the model code.
@@ -426,6 +426,51 @@ class TestAuth(TestCase):
     '''
     Test the code in publisher/auth.py.
     '''
+    def test_decode_body_invalid_json(self):
+        '''
+        Tests to see if the decode_json function checks for invalid json.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = '{"test'
+
+        # Call the check_device function and expect an exception.
+        try:
+            decode_body(url, body)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "Could not decode post body. '\
+                'json is expected.", "code": "InvalidFormat", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+    def test_decode_body_many_arguments(self):
+        '''
+        Tests to see if the decode_json function checks for an invalid number
+        of json parameters.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = {}
+        body['parameter1'] = 'test'
+        body['parameter2'] = 'test'
+        body['parameter3'] = 'test'
+        body['parameter4'] = 'test'
+
+        # Call the check_device function and expect an exception.
+        try:
+            decode_body(url, dumps(body))
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "Post body has an invalid '\
+                'number of parameters.", "code": "InvalidFormat", '\
+                '"resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
     def test_check_device_exists(self):
         '''
         Tests to see if the check_device function checks for a missing device.
