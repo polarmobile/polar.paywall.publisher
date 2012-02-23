@@ -60,7 +60,7 @@ def check_device(url, body):
             properly.
 
             Code: InvalidDevice
-            Message: Varies based on the error.
+            Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
@@ -137,7 +137,7 @@ def check_auth_params(url, body):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies based on the error.
+            Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
@@ -186,7 +186,7 @@ def check_publisher_auth_params(url, body):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies based on the error.
+            Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
@@ -419,7 +419,7 @@ def auth(request, api, version, format, product_code):
                     "model": "90",
                     "os_version": "1.1.1"
                 },
-                
+
                 "authParams": {
                     "username": "polar",
                     "password": "mobile"
@@ -430,10 +430,10 @@ def auth(request, api, version, format, product_code):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
-            
+
             {
                 "sessionKey": "9c4a51cc08d1879570c",
-                
+
                 "products": [
                     "gold-level",
                     "silver-level"
@@ -445,6 +445,25 @@ def auth(request, api, version, format, product_code):
         This section documents errors that are returned to the client. Note
         that the publisher is free to modify the content of these messages as
         they please.
+
+        InvalidPaywallCredentials:
+
+            Thrown when the authentication parameters are invalid.
+
+            Code: InvalidPaywallCredentials
+            Message: Varies with the error.
+            HTTP Error Code: 403
+            Required: Yes
+
+        AccountProblem:
+
+            There is a problem with the user's account. The user is
+            prompted to contact technical support.
+
+            Code: InvalidPaywallCredentials
+            Message: Your account is not valid. Please contact support.
+            HTTP Error Code: 403
+            Required: Yes
 
         InvalidProduct:
 
@@ -491,8 +510,8 @@ def auth(request, api, version, format, product_code):
             format.
 
             Code: InvalidFormat
-            Message: Varies based on the error.
-            HTTP Error Code: Varies based on the error.
+            Message: Varies with the error.
+            HTTP Error Code: Varies with the error.
             Required: No
 
         InvalidDevice:
@@ -501,7 +520,7 @@ def auth(request, api, version, format, product_code):
             properly.
 
             Code: InvalidDevice
-            Message: Varies based on the error.
+            Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
 
@@ -511,7 +530,7 @@ def auth(request, api, version, format, product_code):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies based on the error.
+            Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
@@ -539,8 +558,13 @@ def auth(request, api, version, format, product_code):
     # Check to make sure the device parameter is valid.
     check_device(url, body)
 
-    # Check to make sure the authParams parameter is valid.
+    # Check to make sure the authParams parameter correct with respect to the
+    # API.
     check_auth_params(url, body)
+
+    # Check to make sure that the parameters that this implementation expects
+    # are there.
+    check_publisher_auth_params(url, body)
 
     # Check to see if the supplied credentials match those on record.
         # Check to see if the user's account is active.

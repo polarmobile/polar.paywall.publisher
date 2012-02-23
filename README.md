@@ -260,5 +260,5 @@ Example Error Response:
 ## Creating Users ##
 
 This section describes how to create test users and products. To add a new user
-or set of products to the test system, modify the create\_users function in the
-model class in model.py
+or set of products to the test system, modify the users dictionary in
+constants.py
