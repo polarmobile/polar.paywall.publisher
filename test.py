@@ -446,6 +446,10 @@ class TestAuth(TestCase):
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_decode_body_many_arguments(self):
         '''
         Tests to see if the decode_json function checks for an invalid number
@@ -471,6 +475,10 @@ class TestAuth(TestCase):
                 '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_device_exists(self):
         '''
         Tests to see if the check_device function checks for a missing device.
@@ -490,6 +498,10 @@ class TestAuth(TestCase):
             content = '{"error": {"message": "The device has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_device_type(self):
         '''
@@ -512,6 +524,10 @@ class TestAuth(TestCase):
                 '"code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_manufacturer_exists(self):
         '''
         Tests to see if the check_device function checks for a missing
@@ -532,6 +548,10 @@ class TestAuth(TestCase):
             content = '{"error": {"message": "The manufacturer has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_manufacturer_type(self):
         '''
@@ -555,6 +575,10 @@ class TestAuth(TestCase):
                 'string.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_model_exists(self):
         '''
         Tests to see if the check_device function checks for a missing
@@ -576,6 +600,10 @@ class TestAuth(TestCase):
             content = '{"error": {"message": "The model has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_model_type(self):
         '''
@@ -600,6 +628,10 @@ class TestAuth(TestCase):
                 ' "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_os_version_exists(self):
         '''
         Tests to see if the check_device function checks for a missing
@@ -622,6 +654,10 @@ class TestAuth(TestCase):
             content = '{"error": {"message": "The os_version has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_os_version_type(self):
         '''
@@ -647,6 +683,10 @@ class TestAuth(TestCase):
                 'string.", "code": "InvalidDevice", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_device(self):
         '''
@@ -699,6 +739,10 @@ class TestAuth(TestCase):
                 '"code": "InvalidAuthParams", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_auth_params_type(self):
         '''
         Tests to see if the check_auth_params function checks for an invalid
@@ -721,6 +765,10 @@ class TestAuth(TestCase):
                 'string: test", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_auth_params(self):
         '''
@@ -758,6 +806,10 @@ class TestAuth(TestCase):
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_check_publisher_auth_params_username_exists(self):
         '''
         Tests to see if the check_publisher_auth_params function checks
@@ -780,6 +832,10 @@ class TestAuth(TestCase):
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
     def test_check_publisher_auth_params_password_exists(self):
         '''
@@ -804,6 +860,10 @@ class TestAuth(TestCase):
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
 
 
 class TestModel(TestCase):
@@ -900,6 +960,146 @@ class TestModel(TestCase):
         # Make sure a session id was removed.
         session_ids = model.users[username]['session ids']
         self.assertEqual(len(session_ids), 0)
+
+    def test_authenticate_user_username(self):
+        '''
+        Test to make sure the authenticate_user function checks for a valid
+        username.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'invalid'
+        password = 'invalid'
+        product = 'invalid'
+
+        # Try to authenticate the invalid user.
+        try:
+            model().authenticate_user(url, username, password, product)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonForbidden)
+            content = u'{"error": {"message": "The credentials you have '\
+                'provided are not valid.", "code": '\
+                '"InvalidPaywallCredentials", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_authenticate_user_password(self):
+        '''
+        Test to make sure the authenticate_user function checks for a valid
+        password.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'user01'
+        password = 'invalid'
+        product = 'invalid'
+
+        # Try to authenticate the invalid user.
+        try:
+            model().authenticate_user(url, username, password, product)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonForbidden)
+            content = u'{"error": {"message": "The credentials you have '\
+                'provided are not valid.", "code": '\
+                '"InvalidPaywallCredentials", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_authenticate_user_valid(self):
+        '''
+        Test to make sure the authenticate_user function checks to make sure
+        a user's account is valid.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'user02'
+        password = 'test'
+        product = 'invalid'
+
+        # Try to authenticate the invalid user.
+        try:
+            model().authenticate_user(url, username, password, product)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonForbidden)
+            content = u'{"error": {"message": "Your account is not valid. '\
+                'Please contact support.", "code": "AccountProblem", '\
+                '"resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_authenticate_user_product(self):
+        '''
+        Test to make sure the authenticate_user function checks to make sure
+        the product is valid.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'user01'
+        password = 'test'
+        product = 'invalid'
+
+        # Try to authenticate the invalid user.
+        try:
+            model().authenticate_user(url, username, password, product)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonNotFound)
+            content = u'{"error": {"message": "The requested article could '\
+                'not be found.", "code": "InvalidProduct", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    @patch('publisher.model.uuid4')
+    def test_authenticate_user(self, model_uuid4):
+        '''
+        Test to make sure the authenticate_user function passes for a valid
+        set of credentials. session ids are generated using uuid4 so we mock
+        it out for testing.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'user01'
+        password = 'test'
+        product = 'product01'
+        products = ['product01', 'product02']
+
+        # Create seed data for the test. Mock will override uuid4 in the call
+        # to create_session_id to insert our testing values.
+        session_id = 'test'
+
+        # Set the return value of the mocked function to the session id being
+        # tested.
+        model_uuid4.return_value = session_id
+
+        # Try to authenticate the valid user.
+        (result_id, result_products) = model().authenticate_user(url, username,
+                                                             password, product)
+
+        # Make sure the session ids match.
+        self.assertEqual(unicode(result_id), session_id)
+
+        # Make sure the products match.
+        self.assertEqual(result_products, products)
 
 
 # If the script is called directly, then the global variable __name__ will

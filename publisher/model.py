@@ -166,7 +166,7 @@ class model:
         # Update the list of valid session ids.
         model.users[username]['session ids'] = valid_keys
 
-    def authenticate_user(self, username, password, product):
+    def authenticate_user(self, url, username, password, product):
         '''
         This function first checks to see if a user is valid. If it is, it
         will then attempt to authenticate the user with the password. If
@@ -223,16 +223,17 @@ class model:
                 message = 'The credentials you have provided are not valid.'
                 raise_error(url, code, message, status)
 
-            # Check to see if the user is valid.
-            if model.users[username]['valid'] == False:
-                code = 'AccountProblem'
-                message = 'Your account is not valid. Please contact support.'
-                status = 403
-                raise_error(url, code, message, status)
-
             # Check to see if the password is valid.
             if model.users[username]['password'] != password:
                 message = 'The credentials you have provided are not valid.'
+                raise_error(url, code, message, status)
+
+            # Check to see if the user is valid. The check for a valid account
+            # should come after the check for the password as the password
+            # validates the user's identity.
+            if model.users[username]['valid'] == False:
+                code = 'AccountProblem'
+                message = 'Your account is not valid. Please contact support.'
                 raise_error(url, code, message, status)
 
             # Check to see if the user has access to the requested product.
@@ -248,8 +249,11 @@ class model:
             # Create a new session key.
             session_id = self.create_session_id(username)
 
-            # Return the session id.
-            return session_id
+            # Get a list of products that the username has access to.
+            products = model.users[username]['products']
+
+            # Return the session id and products.
+            return (session_id, products)
 
         finally:
             self.lock.release()

@@ -609,11 +609,19 @@ def auth(request, api, version, format, product_code):
     username = body['authParams']['username']
     password = body['authParams']['password']
 
-    # Authenticate the user.
+    # Authenticate the user to get the session id and the products.
     data_model = model()
-    #session_id = data_model.authenticate_user(
+    (session_id, products) = data_model.authenticate_user(url, username,
+                                                 password, product_code)
 
-    # Get a list of products that the user has access to.
+    # Create the resulting response.
+    result = {}
+    result['sessionKey'] = session_id
+    result['products'] = products
 
-    # Return successfully.
-    return str(request._environ)
+    # Encode the result as a json object.
+    content = dumps(result)
+
+    # Create and send a response.
+    content_type = 'application/json'
+    return Response(content, content_type=content_type)
