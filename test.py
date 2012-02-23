@@ -30,7 +30,7 @@
 from unittest import TestCase, main
 
 # Used to mimic objects in order to test more complex calls.
-from mock import patch, MagicMock
+from mock import patch, Mock
 
 # Used to generate fake http requests.
 from itty import Request
@@ -47,6 +47,18 @@ from publisher.utils import encode_error, raise_error, check_base_url
 # Used to test auth handling code.
 from publisher.auth import (check_device, check_auth_params, auth,
                             check_publisher_auth_params)
+
+# Used to test the model code.
+from publisher.model import model
+
+# Used to reset the models singleton.
+from publisher.constants import users
+
+# Used to mimic functions like datetime to make testing predictable.
+from mock import patch, Mock
+
+# Used to test the timestamps in model.py.
+from datetime import datetime
 
 
 def test_start_response(status, headers):
@@ -586,8 +598,9 @@ class TestAuth(TestCase):
         # Catch the exception and analyze it.
         except Exception, exception:
             self.assertIsInstance(exception, JsonBadSyntax)
-            content = '{"error": {"message": "The os_version is not a string.",'\
-                ' "code": "InvalidDevice", "resource": "/test/"}}'
+            content = '{"error": {"message": "The os_version is not a '\
+                'string.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
     def test_check_device(self):
@@ -746,6 +759,57 @@ class TestAuth(TestCase):
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
+
+
+class TestModel(TestCase):
+    '''
+    Test the code in publisher/model.py. Unlike other test suites, this test
+    code must contend with the fact that the model is a singleton.
+    '''
+    def tearDown(self):
+        '''
+        This function is called after every test to reset the state of the
+        singleton in model.py.
+        '''
+        # Reset the shared data in the model class using the constant that
+        # it is derived from.
+        model.users = users.copy()
+
+    @patch('publisher.model.datetime')
+    @patch('publisher.model.uuid4')
+    def test_create_session_id(self, model_uuid4, model_datetime):
+        '''
+        Tests to see if a users' session id is created properly.
+        '''
+        # Create seed data for the test. Mock will override uuid4 and datetime
+        # in the call to create_session_id to insert our testing values.
+        session_id = 'test'
+
+        # Set the return value of the mocked function to the session id being
+        # tested.
+        model_uuid4.return_value = session_id
+
+        # Create a fake timestamp and mock out the datetime class in the
+        # called function so that a comparison can be made.
+        timestamp = datetime.now()
+        model_datetime.now.return_value = timestamp
+
+        # Note that the test user has already been loaded in constants.py.
+        username = 'user01'
+
+        # Generate the session key. There is no need to worry about threading
+        # as all the tests are run in a single thread, so locking isn't an
+        # issue.
+        result = model().create_session_id(username)
+
+        # Make sure the session key was generated properly.
+        self.assertEqual(result, session_id)
+
+        # Introspect into the model class to make sure the session key was
+        # generated properly.
+        session = model.users[username]['session ids'][0]
+        session_timestamp = session[1]
+        self.assertEqual(session_timestamp, timestamp)
 
 
 # If the script is called directly, then the global variable __name__ will

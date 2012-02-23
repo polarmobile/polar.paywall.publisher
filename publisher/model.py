@@ -99,10 +99,9 @@ class model:
             # Check to see if the users object is un-initialized.
             if model.users == None:
                 # Initialize the shared testing data by copying the dictionary
-                # in the constants file. A deep copy is used to ensure that all
-                # references are resolved.
+                # in the constants file.
                 global users
-                mode.users = users.deepcopy()
+                model.users = users.copy()
         finally:
             self.lock.release()
 
@@ -117,9 +116,10 @@ class model:
         generated session key as a result.
         '''
         # Create the new session id.
-        session_id = uuid4()
+        session_id = str(uuid4())
 
-        # Create a timestamp for the session id.
+        # Create a timestamp for the session id. This timestamp will be
+        # checked later to make sure that the id is still valid.
         timestamp = datetime.now()
 
         # Insert the session id and the timestamp as a python tuple.
