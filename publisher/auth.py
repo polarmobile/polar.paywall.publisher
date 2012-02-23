@@ -27,13 +27,13 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Used to process the http request.
-from itty import post, run_itty, get
+from itty import post, run_itty, get, Response
 
 # Used to validate the values passed into the base url and raise errors.
 from publisher.utils import check_base_url, raise_error
 
-# Used to decode post bodies that contain json encoded data.
-from json import loads
+# Used to decode and encode post bodies that contain json encoded data.
+from json import loads, dumps
 
 # Used to authenticate a user to the data model.
 from publisher.model import model
@@ -119,7 +119,7 @@ def decode_body(url, body):
         raise_error(url, code, message, status)
 
     # Make sure the body has one or two parameters and no more.
-    if len(json_body) != 1 or len(json_body) != 2:
+    if len(json_body) < 1 or len(json_body) > 2:
         code = 'InvalidFormat'
         message = 'Post body has an invalid number of parameters.'
         status = 400
