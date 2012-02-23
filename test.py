@@ -51,14 +51,14 @@ from publisher.auth import (check_device, check_auth_params, auth,
 # Used to test the model code.
 from publisher.model import model
 
-# Used to reset the models singleton.
-from publisher.constants import users
+# Used to reset the models singleton and test timeouts.
+from constants import SESSION_TIMEOUT, users
 
 # Used to mimic functions like datetime to make testing predictable.
 from mock import patch, Mock
 
 # Used to test the timestamps in model.py.
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def test_start_response(status, headers):
@@ -779,7 +779,9 @@ class TestModel(TestCase):
     @patch('publisher.model.uuid4')
     def test_create_session_id(self, model_uuid4, model_datetime):
         '''
-        Tests to see if a users' session id is created properly.
+        Tests to see if a user's session id is created properly. There is no
+        need to worry about threading as all the tests are run in a single
+        thread, so locking isn't an issue.
         '''
         # Create seed data for the test. Mock will override uuid4 and datetime
         # in the call to create_session_id to insert our testing values.
@@ -810,6 +812,34 @@ class TestModel(TestCase):
         session = model.users[username]['session ids'][0]
         session_timestamp = session[1]
         self.assertEqual(session_timestamp, timestamp)
+
+    @patch('publisher.model.datetime')
+    def test_update_session_id(self, model_datetime):
+        '''
+        Test to make sure that a generated session id expires. There is no
+        need to worry about threading as all the tests are run in a single
+        thread, so locking isn't an issue.
+        '''
+        # Create a timestamp that is intentionally outdated so that the
+        # update function expires the id.
+        timestamp = datetime.now() - timedelta(hours=SESSION_TIMEOUT + 1)
+        model_datetime.now.return_value = timestamp
+
+        # Note that the test user has already been loaded in constants.py.
+        username = 'user01'
+
+        # Generate the session id.
+        model().create_session_id(username)
+
+        # Make sure a session id was inserted.
+        session_ids = model.users[username]['session ids']
+        self.assertEqual(len(session_ids), 1)
+
+        # Expire the old key by calling update.
+        model().update_session_ids(username)
+
+        # Make sure a session id was removed.
+        self.assertEqual(len(session_ids), 0)
 
 
 # If the script is called directly, then the global variable __name__ will
