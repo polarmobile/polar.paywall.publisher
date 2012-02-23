@@ -45,7 +45,8 @@ from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
 from publisher.utils import encode_error, raise_error, check_base_url
 
 # Used to test auth handling code.
-from publisher.auth import check_device, check_auth_params, auth
+from publisher.auth import (check_device, check_auth_params, auth,
+                            check_publisher_auth_params)
 
 
 def test_start_response(status, headers):
@@ -676,6 +677,75 @@ class TestAuth(TestCase):
         # Issue the request to the method being tested. The function should not
         # do anything.
         result = check_auth_params(url, body)
+
+    def test_check_publisher_auth_params_exists(self):
+        '''
+        Tests to see if the check_publisher_auth_params function checks
+        to ensure that authParams is provided.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = {}
+
+        # Call the check_publisher_auth_params function and expect an
+        # exception.
+        try:
+            check_publisher_auth_params(url, body)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authParams has not been '\
+                'provided.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+    def test_check_publisher_auth_params_username_exists(self):
+        '''
+        Tests to see if the check_publisher_auth_params function checks
+        to ensure that username is provided.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = {}
+        body['authParams'] = {}
+
+        # Call the check_publisher_auth_params function and expect an
+        # exception.
+        try:
+            check_publisher_auth_params(url, body)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The username has not been '\
+                'provided.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+    def test_check_publisher_auth_params_password_exists(self):
+        '''
+        Tests to see if the check_publisher_auth_params function checks
+        to ensure that password is provided.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = {}
+        body['authParams'] = {}
+        body['authParams']['username'] = 'test'
+
+        # Call the check_publisher_auth_params function and expect an
+        # exception.
+        try:
+            check_publisher_auth_params(url, body)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The password has not been '\
+                'provided.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
 
 
 # If the script is called directly, then the global variable __name__ will

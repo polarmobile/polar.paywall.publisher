@@ -115,9 +115,15 @@ def check_device(url, body):
 
 def check_auth_params(url, body):
     '''
-    This function checks the validity of the authParams parameter. It takes the
-    decoded json body of the request and raises an exception if a problem is
-    found.
+    This function checks the validity of the authParams parameter as per the
+    API. It takes the decoded json body of the request and raises an exception
+    if a problem is found.
+
+    The difference between check_auth_params and check_publisher_auth_params
+    is that check_auth_params enforces validity to the API. In contrast,
+    check_publisher_auth_params enforces validity as to this implementation.
+    It checks specifically for the existence of the "username" and "password"
+    fields.
 
     Server Errors:
 
@@ -141,7 +147,7 @@ def check_auth_params(url, body):
 
     # Note that not having an authParams key is valid.
     if 'authParams' not in body:
-        return None
+        return
 
     # When authParams is provided, the type must be a dictionary.
     if isinstance(body['authParams'], dict) == False:
@@ -154,6 +160,57 @@ def check_auth_params(url, body):
         if isinstance(body['authParams'][key], unicode) == False:
             message = 'This authParams value is not a string: ' + unicode(key)
             raise_error(url, code, message, status)
+
+
+def check_publisher_auth_params(url, body):
+    '''
+    This function checks for the existence of the authParams dictionary and
+    the exiistence of the "username" and "password" keys in the authParams
+    dictionary.
+
+    The difference between check_auth_params and check_publisher_auth_params
+    is that check_auth_params enforces validity to the API. In contrast,
+    check_publisher_auth_params enforces validity as to this implementation.
+    It checks specifically for the existence of the "username" and "password"
+    fields.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidAuthParams:
+
+            Returned when the request does not specify the authParams parameter
+            properly.
+
+            Code: InvalidAuthParams
+            Message: Varies based on the error.
+            HTTP Error Code: 400
+            Required: No
+    '''
+    # All of the errors in this function share a common code and status.
+    code = 'InvalidAuthParams'
+    status = 400
+
+    # In this implementation, authParams is required. The check for authParams
+    # being a dictionary has already been carried out by check_auth_params.
+    if 'authParams' not in body:
+        message = 'The authParams has not been provided.'
+        raise_error(url, code, message, status)
+
+    # Make sure username is provided. The check_auth_params has already
+    # checked the type of the username.
+    if 'username' not in body['authParams']:
+        message = 'The username has not been provided.'
+        raise_error(url, code, message, status)
+
+    # Make sure password is provided. The check_auth_params has already
+    # checked the type of the password.
+    if 'password' not in body['authParams']:
+        message = 'The password has not been provided.'
+        raise_error(url, code, message, status)
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -350,6 +407,38 @@ def auth(request, api, version, format, product_code):
 
     Example:
 
+        Example Request:
+
+            POST /paywallproxy/v1.0.0/json/auth/gold-level HTTP/1.1
+            Authorization: PolarPaywallAuthv1.0.0 123:x
+            Content-Type: application/json
+
+            {
+                "device": {
+                    "manufacturer": "Phake Phones Inc.",
+                    "model": "90",
+                    "os_version": "1.1.1"
+                },
+                
+                "authParams": {
+                    "username": "polar",
+                    "password": "mobile"
+                }
+            }
+
+        Example Response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+            
+            {
+                "sessionKey": "9c4a51cc08d1879570c",
+                
+                "products": [
+                    "gold-level",
+                    "silver-level"
+                ]
+            }
 
     Client Errors:
 
@@ -448,10 +537,10 @@ def auth(request, api, version, format, product_code):
         raise_error(url, code, message, status)
 
     # Check to make sure the device parameter is valid.
-    response = check_device(url, body)
+    check_device(url, body)
 
     # Check to make sure the authParams parameter is valid.
-    response = check_auth_params(url, body)
+    check_auth_params(url, body)
 
     # Check to see if the supplied credentials match those on record.
         # Check to see if the user's account is active.

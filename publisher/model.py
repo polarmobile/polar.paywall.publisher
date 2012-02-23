@@ -26,6 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Used to control access to the model's shared data.
 from threading import RLock
 
 class model:
@@ -116,13 +117,33 @@ class model:
 
     def authenticate_user(self, username, password):
         '''
-        Authenticates a user. If a user is valid, this function returns True.
-        If not, this function returns False.
+        This function first checks to see if a user is valid. If it is, it
+        will then attempt to authenticate the user with the password. If
+        the password attempt succeeds, this function generates and inserts
+        a new session key and returns it.
+
+        If any failures occur as a result of authenticating the user, an
+        exception will be thrown. The exceptions are detailed below.
+
+        Client Errors:
+
+            This section documents errors that are returned to the client. Note
+            that the publisher is free to modify the content of these messages
+            as they please.
+
+            InvalidPaywallCredentials:
+
+                Thrown when the authentication parameters are invalid.
+
+                Code: InvalidProduct
+                Message: The requested article could not be found.
+                HTTP Error Code: 404
+                Required: Yes
         '''
         # Lock access to the shared memory.
         self.lock.acquire()
         try:
-            # Check to see if the user is in 
+            # Check to see if the user is valid.
 
         finally:
             self.lock.release()
