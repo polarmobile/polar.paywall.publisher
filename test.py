@@ -45,8 +45,9 @@ from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
 from publisher.utils import encode_error, raise_error, check_base_url
 
 # Used to test auth handling code.
-from publisher.auth import (decode_body, check_device, check_auth_params, auth,
-                            check_publisher_auth_params)
+from publisher.auth import (check_authorization_header, decode_body,
+                            check_device, check_auth_params, auth,
+                            check_publisher_auth_params,)
 
 # Used to test the model code.
 from publisher.model import model
@@ -426,6 +427,57 @@ class TestAuth(TestCase):
     '''
     Test the code in publisher/auth.py.
     '''
+    def test_check_authorization_header_exists(self):
+        '''
+        Tests to see if the check_authorization_header function checks for
+        the existence of the "Authorization" header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+
+        # Call the check_authorization_header function and expect an exception.
+        try:
+            check_authorization_header(url, environment)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authorization token has '\
+                'not been provided.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_check_authorization_header_value(self):
+        '''
+        Tests to see if the check_authorization_header function checks for
+        the right authorization header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'invalid'
+
+        # Call the check_authorization_header function and expect an exception.
+        try:
+            check_authorization_header(url, environment)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authorization token is '\
+                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
     def test_decode_body_invalid_json(self):
         '''
         Tests to see if the decode_json function checks for invalid json.
@@ -841,6 +893,33 @@ class TestAuth(TestCase):
         '''
         Tests to see if the check_publisher_auth_params function checks
         to ensure that password is provided.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        body = {}
+        body['authParams'] = {}
+        body['authParams']['username'] = 'test'
+
+        # Call the check_publisher_auth_params function and expect an
+        # exception.
+        try:
+            check_publisher_auth_params(url, body)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The password has not been '\
+                'provided.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_auth(self):
+        '''
+        Tests a positive case of the auth function.
         '''
         # Create seed data for the test.
         url = '/test/'

@@ -45,6 +45,42 @@ FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
 
+def check_authorization_header(url, environment):
+    '''
+    Checks for the existence of the auth-scheme token.
+
+    Server Errors:
+
+        This section documents errors that are persisted on the server and not
+        sent to the client. Note that the publisher is free to modify the
+        content of these messages as they please.
+
+        InvalidAuthScheme:
+
+            Returned when the publisher does not recognize the requested
+            format.
+
+            Code: InvalidAuthScheme
+            Message: Varies with the error.
+            HTTP Error Code: 400.
+            Required: No
+    '''
+    # All of the errors in this function share a common code and status.
+    code = 'InvalidAuthScheme'
+    status = 400
+
+    # Make sure the token is provided.
+    if 'HTTP_AUTHORIZATION' not in environment:
+        message = 'The authorization token has not been provided.'
+        raise_error(url, code, message, status)
+
+    # Make sure the token is provided. The auth-scheme token isn't important
+    # for this part of the API, but it is for others.
+    if environment['HTTP_AUTHORIZATION'] != 'PolarPaywallProxyAuthv1.0.0':
+        message = 'The authorization token is incorrect.'
+        raise_error(url, code, message, status)
+
+
 def decode_body(url, body):
     '''
     This function checks the validity of the body parameter. It takes the
@@ -584,12 +620,25 @@ def auth(request, api, version, format, product_code):
             Message: Varies with the error.
             HTTP Error Code: 400
             Required: No
+
+        InvalidAuthScheme:
+
+            Returned when the publisher does not recognize the requested
+            format.
+
+            Code: InvalidAuthScheme
+            Message: Varies with the error.
+            HTTP Error Code: 400.
+            Required: No
     '''
     # Store the full URL string so that it can be used to report errors.
     url = request.path
 
     # Validate the base URL.
     check_base_url(url, api, version, format)
+
+    # Check for the auth-scheme token.
+    check_authorization_header(url, request._environ)
 
     # Decode the json body from the post body.
     body = decode_body(url, request.body)
