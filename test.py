@@ -52,7 +52,7 @@ from publisher.auth import (check_device, check_auth_params, auth,
 from publisher.model import model
 
 # Used to reset the models singleton and test timeouts.
-from constants import SESSION_TIMEOUT, users
+from publisher.constants import SESSION_TIMEOUT, users
 
 # Used to mimic functions like datetime to make testing predictable.
 from mock import patch, Mock
@@ -771,9 +771,33 @@ class TestModel(TestCase):
         This function is called after every test to reset the state of the
         singleton in model.py.
         '''
-        # Reset the shared data in the model class using the constant that
-        # it is derived from.
-        model.users = users.copy()
+        # Reset the shared data in the model class. When users is set to None
+        # the model class copies it again from constants.py.
+        model.users = None
+
+    @patch('publisher.model.datetime')
+    def create_expired_session(self, model_datetime):
+        '''
+        In order to test session key expiry, we need to create a session that
+        has expired using the mock testing library to override datetime.now.
+        Unfortunately, the code to check for outdated keys also uses
+        datetime.now. So we have to mock the datetime.now function using a
+        separate function.
+        '''
+        # Create a timestamp that is intentionally outdated so that the
+        # update function expires the id.
+        timestamp = datetime.now() - timedelta(hours=SESSION_TIMEOUT + 1)
+        model_datetime.now.return_value = timestamp
+
+        # Note that the test user has already been loaded in constants.py.
+        username = 'user01'
+
+        # Generate the session id.
+        model().create_session_id(username)
+
+        # Make sure a session id was inserted.
+        session_ids = model.users[username]['session ids']
+        self.assertEqual(len(session_ids), 1)
 
     @patch('publisher.model.datetime')
     @patch('publisher.model.uuid4')
@@ -813,32 +837,23 @@ class TestModel(TestCase):
         session_timestamp = session[1]
         self.assertEqual(session_timestamp, timestamp)
 
-    @patch('publisher.model.datetime')
-    def test_update_session_id(self, model_datetime):
+    def test_update_session_id(self):
         '''
         Test to make sure that a generated session id expires. There is no
         need to worry about threading as all the tests are run in a single
         thread, so locking isn't an issue.
         '''
-        # Create a timestamp that is intentionally outdated so that the
-        # update function expires the id.
-        timestamp = datetime.now() - timedelta(hours=SESSION_TIMEOUT + 1)
-        model_datetime.now.return_value = timestamp
-
         # Note that the test user has already been loaded in constants.py.
         username = 'user01'
 
-        # Generate the session id.
-        model().create_session_id(username)
-
-        # Make sure a session id was inserted.
-        session_ids = model.users[username]['session ids']
-        self.assertEqual(len(session_ids), 1)
+        # Create the expired session.
+        self.create_expired_session()
 
         # Expire the old key by calling update.
         model().update_session_ids(username)
 
         # Make sure a session id was removed.
+        session_ids = model.users[username]['session ids']
         self.assertEqual(len(session_ids), 0)
 
 

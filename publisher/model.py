@@ -42,6 +42,10 @@ from datetime import datetime, timedelta
 # session keys.
 from constants import SESSION_TIMEOUT, users
 
+# Used to perform a deep copy of the users dictionary to ensure that no
+# references are copied.
+from copy import deepcopy
+
 
 class model:
     '''
@@ -99,9 +103,11 @@ class model:
             # Check to see if the users object is un-initialized.
             if model.users == None:
                 # Initialize the shared testing data by copying the dictionary
-                # in the constants file.
-                global users
-                model.users = users.copy()
+                # in the constants file. deepcopy is used to ensure that python
+                # does not copy any references when it makes a copy of the
+                # users dictionary (from constants.py). Making a copy of the
+                # users dictionary makes testing easier.
+                model.users = deepcopy(users)
         finally:
             self.lock.release()
 
@@ -155,7 +161,7 @@ class model:
             # Check to see if the session has expired. If it hasn't then add
             # it to the list of valid keys.
             if (datetime.now() - timestamp) < expired_limit:
-                valid_keys.append(session_id, timestamp)
+                valid_keys.append((session_id, timestamp))
 
         # Update the list of valid session ids.
         model.users[username]['session ids'] = valid_keys
