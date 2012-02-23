@@ -32,8 +32,8 @@ from unittest import TestCase, main
 # Used to mimic objects in order to test more complex calls.
 from mock import patch, Mock
 
-# Used to generate fake http requests.
-from itty import Request
+# Used to generate fake http requests and test for responses.
+from itty import Request, Response
 
 # Used to test error handling code in errors.py.
 from json import dumps
@@ -478,6 +478,19 @@ class TestAuth(TestCase):
         else:
             raise AssertionError('No exception raised.')
 
+    def test_check_authorization_header(self):
+        '''
+        Tests to see if the check_authorization_header function passes a
+        proper header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+
+        # Call the check_authorization_header function.
+        check_authorization_header(url, environment)
+
     def test_decode_body_invalid_json(self):
         '''
         Tests to see if the decode_json function checks for invalid json.
@@ -917,32 +930,54 @@ class TestAuth(TestCase):
         else:
             raise AssertionError('No exception raised.')
 
-    def test_auth(self):
+    @patch('publisher.model.uuid4')
+    def test_auth(self, model_uuid4):
         '''
         Tests a positive case of the auth function.
         '''
-        # Create seed data for the test.
-        url = '/test/'
+        # Create a test request
+        request = create_request('/test/')
+
+        # Create the url parameters.
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'json'
+        product_code = 'product01'
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
+        # Create the post body.
         body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+        body['device']['os_version'] = 'test'
         body['authParams'] = {}
-        body['authParams']['username'] = 'test'
+        body['authParams']['username'] = 'user01'
+        body['authParams']['password'] = 'test'
+        request.body = dumps(body)
 
-        # Call the check_publisher_auth_params function and expect an
-        # exception.
-        try:
-            check_publisher_auth_params(url, body)
+        # Create seed data for the test. Mock will override uuid4 in the call
+        # to create_session_id to insert our testing values.
+        session_id = 'test'
 
-        # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertIsInstance(exception, JsonBadSyntax)
-            content = '{"error": {"message": "The password has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
-            self.assertEqual(unicode(exception), content)
+        # Set the return value of the mocked function to the session id being
+        # tested.
+        model_uuid4.return_value = session_id
 
-        # If no exception was raised, raise an error.
-        else:
-            raise AssertionError('No exception raised.')
+        # Run the auth function.
+        result = auth(request, api, version, format, product_code)
+
+        # Check the result.
+        self.assertTrue(isinstance(result, Response))
+        expected = '{"sessionKey": "test", "products": ["product01", '\
+                   '"product02"]}'
+        self.assertEquals(result.output, expected)
+        self.assertEquals(result.content_type, 'application/json')
+        self.assertEquals(result.status, 200)
 
 
 class TestModel(TestCase):
