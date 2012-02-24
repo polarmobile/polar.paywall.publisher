@@ -22,7 +22,7 @@ This project is a simple sample web server for the Polar Mobile Paywall API.
     * __auth.py__
     * __validate.py__
     * __model.py__
-    * __credentials.py__
+    * __constants.py__
     * __test.py__
     * __runserver.py__
     * __setup.py__
@@ -139,9 +139,9 @@ In order to install this sample, run the following command:
 
 The sample implementation contains three main moving parts:
     
-    * __auth.py__ := A request handler that authorizes the user.
-    * __validate.py__ := A request handler that grants the user access to a product.
-    * __model.py__ := A data store used to store and fetch usernames and passwords.
+ * __auth.py__ := A request handler that authorizes the user.
+ * __validate.py__ := A request handler that grants the user access to a product.
+ * __model.py__ := A data store used to store and fetch usernames and passwords.
 
 All other files simply provide supporting functionality to achieve these three
 main operations.
@@ -166,6 +166,12 @@ functions (check\_device, and check\_auth\_params) that check the validity of
 the parameters passed to the auth function.
 
 ### validate.py ###
+
+The validate function in this file is a handler used to attempt an authorization
+for a product using supplied session key. This API call is used periodically to
+validate that the session is still valid and the user should continue to be
+allowed to access protected resources.
+
 ### model.py ###
 
 In order to simplify the design of this sample, the state of the system is
@@ -173,7 +179,12 @@ stored in memory, as opposed to a database. The server is then run in a
 single process with multiple threads. The model class contains a singleton
 that stores the state of the server.
 
-### credentials.py ###
+### constants.py ###
+
+A file used to store constant values used in the server's implementation. This
+file stores the url regexes, the length in hours of a session key's validity,
+and most importantly the test users that the server supports.
+
 ### test.py ###
 
 A series of unit tests used during the development of this project. To run the
