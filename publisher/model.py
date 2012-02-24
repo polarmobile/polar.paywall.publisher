@@ -305,46 +305,44 @@ class model:
             status = 401
 
             # Loop over all of the users and check for the valid session id.
-            for user in model.users:
+            for username in model.users:
                 # Check for the session id.
-                pass
+                sessions = model.users[username]['session ids']
 
-            # Check to see if the username is known.
-            if username not in model.users:
-                message = 'The credentials you have provided are not valid.'
-                raise_error(url, code, message, status)
+                # Check to see if the session id belongs to this user.
+                if session_id not in sessions:
+                    # If it doesn't, keep looking.
+                    continue
 
-            # Check to see if the password is valid.
-            if model.users[username]['password'] != password:
-                message = 'The credentials you have provided are not valid.'
-                raise_error(url, code, message, status)
+                # Check to see if the user is valid. The check for a valid
+                # account should come after the check for the session id as
+                # the password validates the user's identity.
+                if model.users[username]['valid'] == False:
+                    code = 'AccountProblem'
+                    message = 'Your account is not valid. Please contact '\
+                              'support.'
+                    status = 403
+                    raise_error(url, code, message, status)
 
-            # Check to see if the user is valid. The check for a valid account
-            # should come after the check for the password as the password
-            # validates the user's identity.
-            if model.users[username]['valid'] == False:
-                code = 'AccountProblem'
-                message = 'Your account is not valid. Please contact support.'
-                raise_error(url, code, message, status)
+                # Update the list of valid session ids; the session may have
+                # expired since the last validation.
+                self.update_session_ids(username)
 
-            # Check to see if the user has access to the requested product.
-            if product not in model.users[username]['products']:
-                code = 'InvalidProduct'
-                message = 'The requested article could not be found.'
-                status = 404
-                raise_error(url, code, message, status)
+                # Check to see if the session id is valid; it may have been
+                # invalidated by the call to update_session_ids.
+                if session_id not in sessions:
+                    message = 'Your session has expired. Please log back in.'
+                    raise_error(url, code, message, status)
 
-            # Update all valid session keys.
-            self.update_session_ids(username)
+                # Get a list of products that the username has access to and
+                # return them.
+                products = model.users[username]['products']
+                return products
 
-            # Create a new session key.
-            session_id = self.create_session_id(username)
-
-            # Get a list of products that the username has access to.
-            products = model.users[username]['products']
-
-            # Return the session id and products.
-            return (session_id, products)
+            # If nothing has been returned at this point, raise an error.
+            # We can only assume that their session key has expired.
+            message = 'Your session has expired. Please log back in.'
+            raise_error(url, code, message, status)
 
         finally:
             self.lock.release()
