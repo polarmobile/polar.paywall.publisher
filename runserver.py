@@ -35,5 +35,8 @@ from publisher.errors import bad_syntax, forbidden, not_found, internal_error
 # Import auth handling entry points.
 from publisher.auth import auth
 
+# Import validate handling entry points.
+from publisher.validate import validate
+
 # Run the web server.
 run_itty(host='0.0.0.0', port=8080)
