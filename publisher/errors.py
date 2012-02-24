@@ -50,12 +50,21 @@ def bad_syntax(request, exception):
     # All exceptions handled by this function are json encoded 403 errors.
     content_type = 'application/json'
     status = 404
+    headers = []
+
+    # The authorization token depends on the request and it needs to be
+    # mirrored back to the client as per the API. Unfortunately, we can't
+    # guarantee that the header is in the request, so we need to check.
+    if 'HTTP_AUTHORIZATION' in request._environ:
+        # Get the token and append it to the headers.
+        authorization = request._environ['HTTP_AUTHORIZATION']
+        headers.append(('Authorization', authorization))
 
     # The content is the string representation of the exception.
     content = unicode(exception)
 
     # Create and send a response.
-    response = Response(content, content_type=content_type, status=status)
+    response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
 
@@ -73,12 +82,21 @@ def forbidden(request, exception):
     # All exceptions handled by this function are json encoded 403 errors.
     content_type = 'application/json'
     status = 403
+    headers = []
+
+    # The authorization token depends on the request and it needs to be
+    # mirrored back to the client as per the API. Unfortunately, we can't
+    # guarantee that the header is in the request, so we need to check.
+    if 'HTTP_AUTHORIZATION' in request._environ:
+        # Get the token and append it to the headers.
+        authorization = request._environ['HTTP_AUTHORIZATION']
+        headers.append(('Authorization', authorization))
 
     # The content is the string representation of the exception.
     content = unicode(exception)
 
     # Create and send a response.
-    response = Response(content, content_type=content_type, status=status)
+    response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
 
@@ -118,6 +136,15 @@ def not_found(request, exception):
     # All exceptions handled by this function are json encoded 404 errors.
     content_type = 'application/json'
     status = 404
+    headers = []
+
+    # The authorization token depends on the request and it needs to be
+    # mirrored back to the client as per the API. Unfortunately, we can't
+    # guarantee that the header is in the request, so we need to check.
+    if 'HTTP_AUTHORIZATION' in request._environ:
+        # Get the token and append it to the headers.
+        authorization = request._environ['HTTP_AUTHORIZATION']
+        headers.append(('Authorization', authorization))
 
     # The content is determined below.
     content = ''
@@ -137,7 +164,7 @@ def not_found(request, exception):
         content = encode_error(url, code, message)
 
     # Create and send a response.
-    response = Response(content, content_type=content_type, status=status)
+    response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
 
@@ -179,6 +206,15 @@ def internal_error(request, exception):
     # All exceptions handled by this function are json encoded 500 errors.
     content_type = 'application/json'
     status = 500
+    headers = []
+
+    # The authorization token depends on the request and it needs to be
+    # mirrored back to the client as per the API. Unfortunately, we can't
+    # guarantee that the header is in the request, so we need to check.
+    if 'HTTP_AUTHORIZATION' in request._environ:
+        # Get the token and append it to the headers.
+        authorization = request._environ['HTTP_AUTHORIZATION']
+        headers.append(('Authorization', authorization))
 
     # The content is determined below.
     content = ''
@@ -200,5 +236,5 @@ def internal_error(request, exception):
         content = encode_error(url, code, message)
 
     # Create and send a response.
-    response = Response(content, content_type=content_type, status=status)
+    response = Response(content, headers, status, content_type)
     return response.send(request._start_response)

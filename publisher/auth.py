@@ -47,7 +47,8 @@ PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
 def check_authorization_header(url, environment):
     '''
-    Checks for the existence of the auth-scheme token.
+    Checks for the existence of the auth-scheme token. Note that the auth
+    entry point has a different auth-scheme token.
 
     Server Errors:
 
@@ -671,6 +672,11 @@ def auth(request, api, version, format, product_code):
     # Encode the result as a json object.
     content = dumps(result)
 
+    # Extract the authentication token.
+    authorization = request._environ['HTTP_AUTHORIZATION']
+    headers = [('Authorization', authorization)]
+
     # Create and send a response.
+    status = 200
     content_type = 'application/json'
-    return Response(content, content_type=content_type)
+    return Response(content, headers, status, content_type)
