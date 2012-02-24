@@ -35,6 +35,12 @@ from publisher.utils import check_base_url, raise_error
 # Used to match URLs.
 from constants import API, VERSION, FORMAT, PRODUCT_CODE
 
+# Used to validate a session key.
+from publisher.model import model
+
+# Used to encode post bodies using json.
+from json import dumps
+
 
 def get_session_id(url, environment):
     '''
@@ -325,13 +331,9 @@ def validate(request, api, version, format, product_code):
         status = 400
         raise_error(url, code, message, status)
 
-
-
-
-    # Authenticate the user to get the session id and the products.
+    # Validate the session id.
     data_model = model()
-    (session_id, products) = data_model.authenticate_user(url, username,
-                                                 password, product_code)
+    products = data_model.validate_session(url, session_id)
 
     # Create the resulting response.
     result = {}
@@ -341,7 +343,7 @@ def validate(request, api, version, format, product_code):
     # Encode the result as a json object.
     content = dumps(result)
 
-    # Extract the authentication token.
+    # Extract the authentication token and send it back.
     authorization = request._environ['HTTP_AUTHORIZATION']
     headers = [('Authorization', authorization)]
 
