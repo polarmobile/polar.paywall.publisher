@@ -27,7 +27,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Used to process the http request.
-from itty import post, run_itty, get, Response
+from itty import post, Response
 
 # Used to validate the values passed into the base url and raise errors.
 from publisher.utils import check_base_url, raise_error
@@ -38,17 +38,14 @@ from json import loads, dumps
 # Used to authenticate a user to the data model.
 from publisher.model import model
 
-# Regex constants used to match URLs.
-API = r'/(?P<api>\w+)'
-VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
-FORMAT = r'/(?P<format>\w+)'
-PRODUCT_CODE = r'/(?P<product_code>\w+)'
+# Used to match URLs.
+from constants import API, VERSION, FORMAT, PRODUCT_CODE
 
 
 def check_authorization_header(url, environment):
     '''
-    Checks for the existence of the auth-scheme token. Note that the auth
-    entry point has a different auth-scheme token.
+    Checks for the existence of the auth-scheme token. Note that the validate 
+    API entry point has a different auth-scheme token.
 
     Server Errors:
 

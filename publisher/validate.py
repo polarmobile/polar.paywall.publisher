@@ -26,11 +26,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Used to process the http request.
+from itty import post, Response
 
-def check_session_authorization_header(url, environment):
+# Used to validate the values passed into the base url and raise errors.
+from publisher.utils import check_base_url, raise_error
+
+# Used to match URLs.
+from constants import API, VERSION, FORMAT, PRODUCT_CODE
+
+
+def get_session_id(url, environment):
     '''
-    Checks for the existence of the auth-scheme token. Note that the auth
-    entry point has a different auth-scheme token.
+    Checks for the existence of the auth-scheme token and then extracts the
+    session id and returns it. Note that the auth API entry point has a
+    different auth-scheme token.
 
     Server Errors:
 
@@ -60,13 +70,27 @@ def check_session_authorization_header(url, environment):
     # Make sure the token is provided. The auth-scheme token isn't important
     # for this part of the API, but it is for others.
     token = environment['HTTP_AUTHORIZATION']
-    if token.startsiwth('PolarPaywallProxySessionv1.0.0 session:') == False:
+    scheme = 'PolarPaywallProxySessionv1.0.0 session:'
+    if token.startswith(scheme) == False:
         message = 'The authorization token is incorrect.'
         raise_error(url, code, message, status)
 
+    # Try to extract the session key. The syntax below extracts the characters
+    # from the length of the scheme string to the end. Note that whitespace
+    # characters are stripped from the session_id.
+    session_id = token[len(scheme):].strip()
 
-@post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
-def auth(request, api, version, format, product_code):
+    # Check to make sure a session id has actually been provided.
+    if len(session_id) == 0:
+        message = 'The session id has not been provided.'
+        raise_error(url, code, message, status)
+
+    # Return the session key.
+    return session_id
+
+
+@post(API + VERSION + FORMAT + r'/validate' + PRODUCT_CODE)
+def validate(request, api, version, format, product_code):
     '''
     Overview:
 
@@ -272,26 +296,6 @@ def auth(request, api, version, format, product_code):
             HTTP Error Code: 400.
             Required: No
 
-        InvalidDevice:
-
-            Returned when the request does not specify the device parameters
-            properly.
-
-            Code: InvalidDevice
-            Message: Varies with the error.
-            HTTP Error Code: 400
-            Required: No
-
-        InvalidAuthParams:
-
-            Returned when the request does not specify the authParams parameter
-            properly.
-
-            Code: InvalidAuthParams
-            Message: Varies with the error.
-            HTTP Error Code: 400
-            Required: No
-
         InvalidAuthScheme:
 
             Returned when the publisher does not recognize the requested
@@ -308,26 +312,21 @@ def auth(request, api, version, format, product_code):
     # Validate the base URL.
     check_base_url(url, api, version, format)
 
-    # Check for the auth-scheme token.
-    check_authorization_header(url, request._environ)
+    # Get the session id from the auth-scheme token.
+    session_id = get_session_id(url, request._environ)
 
-    # Decode the json body from the post body.
-    body = decode_body(url, request.body)
+    # Check to make sure there is no request body. Any whitespace characters
+    # are removed first before the comparison is made.
+    if len(request.body.strip()) > 0:
+        # If there is a body for this API call, that implies that the caller
+        # is not conforming to the API, so raise an error.
+        code = 'InvalidFormat'
+        message = 'Invalid post body.'
+        status = 400
+        raise_error(url, code, message, status)
 
-    # Check to make sure the device parameter is valid.
-    check_device(url, body)
 
-    # Check to make sure the authParams parameter correct with respect to the
-    # API.
-    check_auth_params(url, body)
 
-    # Check to make sure that the parameters that this implementation expects
-    # are there.
-    check_publisher_auth_params(url, body)
-
-    # Extract the username and password from the body.
-    username = body['authParams']['username']
-    password = body['authParams']['password']
 
     # Authenticate the user to get the session id and the products.
     data_model = model()

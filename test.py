@@ -62,6 +62,9 @@ from mock import patch, Mock
 # Used to test the timestamps in model.py.
 from datetime import datetime, timedelta
 
+# Used to test the validate API entry point.
+from publisher.validate import get_session_id, validate
+
 
 def test_start_response(status, headers):
     '''
@@ -516,6 +519,101 @@ class TestAuth(TestCase):
 
         # Call the check_authorization_header function.
         check_authorization_header(url, environment)
+
+    def test_get_session_id_exists(self):
+        '''
+        Tests to see if the get_session_id function checks for the existence
+        of the "Authorization" header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+
+        # Call the get_session_id function and expect an exception.
+        try:
+            get_session_id(url, environment)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authorization token has '\
+                'not been provided.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_get_session_id_value(self):
+        '''
+        Tests to see if the get_session_id function checks for the right
+        authorization header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'invalid'
+
+        # Call the get_session_id function and expect an exception.
+        try:
+            get_session_id(url, environment)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The authorization token is '\
+                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_get_session_id_value_exists(self):
+        '''
+        Tests to see if the get_session_id function checks for the provision
+        of an actual session id.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+        token = 'PolarPaywallProxySessionv1.0.0 session: '
+        environment['HTTP_AUTHORIZATION'] = token
+
+        # Call the get_session_id function and expect an exception.
+        try:
+            get_session_id(url, environment)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonBadSyntax)
+            content = '{"error": {"message": "The session id has not been '\
+                'provided.", "code": "InvalidAuthScheme", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_get_session_id(self):
+        '''
+        Tests to see if the get_session_id function passes a
+        proper header.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        environment = {}
+        token = 'PolarPaywallProxySessionv1.0.0 session: test'
+        environment['HTTP_AUTHORIZATION'] = token
+
+        # Call the get_session_id function.
+        result = get_session_id(url, environment)
+
+        # Check for the right result.
+        self.assertEqual(result, 'test')
 
     def test_decode_body_invalid_json(self):
         '''
