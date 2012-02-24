@@ -188,7 +188,7 @@ class model:
 
                 Code: InvalidPaywallCredentials
                 Message: Varies with the error.
-                HTTP Error Code: 403
+                HTTP Error Code: 401
                 Required: Yes
 
             AccountProblem:
@@ -196,7 +196,7 @@ class model:
                 There is a problem with the user's account. The user is
                 prompted to contact technical support.
 
-                Code: InvalidPaywallCredentials
+                Code: AccountProblem
                 Message: Your account is not valid. Please contact support.
                 HTTP Error Code: 403
                 Required: Yes
@@ -216,7 +216,7 @@ class model:
             # Most of the errors in this function share a common code and
             # status.
             code = 'InvalidPaywallCredentials'
-            status = 403
+            status = 401
 
             # Check to see if the username is known.
             if username not in model.users:

@@ -44,6 +44,17 @@ class JsonBadSyntax(RequestError):
     status = 400
 
 
+class JsonUnauthorized(RequestError):
+    '''
+    Unfortunately the itty framework defines a minimal set of HTTP exceptions.
+    To accommodate HTTP 401 errors (unauthorized), we need to inherit from the
+    error base class and create a new exception. To differentiate between
+    a normal exception, and an exception that is json encoded, the class name
+    is prepended with json.
+    '''
+    status = 401
+
+
 class JsonForbidden(Forbidden):
     '''
     To differentiate between a normal exception, and an exception that has json
@@ -132,6 +143,8 @@ def raise_error(url, code, message, status):
     # trace is hidden to prevent any internal information from leaking.
     if status == 400:
         raise JsonBadSyntax(message, hide_traceback=True)
+    elif status == 401:
+        raise JsonUnauthorized(message, hide_traceback=True)
     elif status == 403:
         raise JsonForbidden(message, hide_traceback=True)
     elif status == 404:

@@ -37,9 +37,10 @@ from itty import Request, Response
 
 # Used to test error handling code in errors.py.
 from json import dumps
-from publisher.errors import bad_syntax, forbidden, not_found, internal_error
-from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
-                             JsonAppError)
+from publisher.errors import (bad_syntax, unauthorized, forbidden, not_found,
+                              internal_error)
+from publisher.utils import (JsonBadSyntax, JsonUnauthorized, JsonForbidden,
+                             JsonNotFound, JsonAppError)
 
 # Used to test error encoding.
 from publisher.utils import encode_error, raise_error, check_base_url
@@ -132,6 +133,31 @@ class TestUtils(TestCase):
         # Catch the exception and analyze it.
         except Exception, exception:
             self.assertIsInstance(exception, JsonBadSyntax)
+            content = u'{"error": {"message": "This is a test error.", '\
+                '"code": "TestError", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_raise_error_unauthorized(self):
+        '''
+        Tests generation of a 401 error.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        code = 'TestError'
+        message = 'This is a test error.'
+        status = 401
+
+        # Call raise_error and get the result.
+        try:
+            raise_error(url, code, message, status)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonUnauthorized)
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -1092,7 +1118,7 @@ class TestModel(TestCase):
 
         # Catch the exception and analyze it.
         except Exception, exception:
-            self.assertIsInstance(exception, JsonForbidden)
+            self.assertIsInstance(exception, JsonUnauthorized)
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1119,7 +1145,7 @@ class TestModel(TestCase):
 
         # Catch the exception and analyze it.
         except Exception, exception:
-            self.assertIsInstance(exception, JsonForbidden)
+            self.assertIsInstance(exception, JsonUnauthorized)
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1146,7 +1172,7 @@ class TestModel(TestCase):
 
         # Catch the exception and analyze it.
         except Exception, exception:
-            self.assertIsInstance(exception, JsonForbidden)
+            self.assertIsInstance(exception, JsonUnauthorized)
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'

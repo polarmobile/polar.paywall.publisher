@@ -30,8 +30,8 @@
 from itty import error, Response
 
 # Used to check for json encoded errors.
-from publisher.utils import (JsonBadSyntax, JsonForbidden, JsonNotFound,
-                             JsonAppError)
+from publisher.utils import (JsonBadSyntax, JsonUnauthorized, JsonForbidden,
+                             JsonNotFound, JsonAppError)
 
 # Used to encode default errors, if a non-json error is encountered.
 from publisher.utils import encode_error
@@ -50,6 +50,37 @@ def bad_syntax(request, exception):
     # All exceptions handled by this function are json encoded 403 errors.
     content_type = 'application/json'
     status = 404
+    headers = []
+
+    # The authorization token depends on the request and it needs to be
+    # mirrored back to the client as per the API. Unfortunately, we can't
+    # guarantee that the header is in the request, so we need to check.
+    if 'HTTP_AUTHORIZATION' in request._environ:
+        # Get the token and append it to the headers.
+        authorization = request._environ['HTTP_AUTHORIZATION']
+        headers.append(('Authorization', authorization))
+
+    # The content is the string representation of the exception.
+    content = unicode(exception)
+
+    # Create and send a response.
+    response = Response(content, headers, status, content_type)
+    return response.send(request._start_response)
+
+
+@error(401)
+def unauthorized(request, exception):
+    '''
+    This function handles 401 errors. Since no other part of the itty
+    framework throws 401 errors it is safe to assume that all exceptions are
+    json encoded.
+    '''
+    # Ensure that the exception is json encoded.
+    assert isinstance(exception, JsonUnauthorized) == True
+
+    # All exceptions handled by this function are json encoded 403 errors.
+    content_type = 'application/json'
+    status = 401
     headers = []
 
     # The authorization token depends on the request and it needs to be

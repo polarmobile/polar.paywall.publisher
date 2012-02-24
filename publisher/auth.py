@@ -325,21 +325,21 @@ def auth(request, api, version, format, product_code):
         are proxied to the client. Server errors remain on Polar's server.
 
         An auth-scheme token is expected when a call is made to this API end
-        point. It must conform to RFC 2617 specifications. The *Authorization*
+        point. It must conform to RFC 2617 specifications. The authorization
         header has the following form:
 
             Authorization: PolarPaywallProxyAuthv1.0.0
 
     Parameters:
 
-        There are two sets of parameters that this API entry point serves. The
-        first set consists of the product code, which is specified in the URL
-        and the post body, which contains formatted json. Technical details
+        There are two sets of parameters that this API entry point requires.
+        The first set consists of the product code, which is specified in the
+        URL and the post body, which contains formatted json. Technical details
         will follow after a description of the parameters and an example will
         follow after that.
 
         The product code is part of the URL. It is a publisher-assigned unique
-        identifier for this product. The publisher code is required.
+        identifier for this product. The product code is required.
 
         The post body is a json map with two keys. The first key is "device",
         which is a json map describing the device requesting authorization.
@@ -540,7 +540,7 @@ def auth(request, api, version, format, product_code):
 
             Code: InvalidPaywallCredentials
             Message: Varies with the error.
-            HTTP Error Code: 403
+            HTTP Error Code: 401
             Required: Yes
 
         AccountProblem:
