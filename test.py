@@ -1176,8 +1176,8 @@ class TestModel(TestCase):
 
         # Introspect into the model class to make sure the session key was
         # generated properly.
-        session = model.users[username]['session ids'][0]
-        session_timestamp = session[1]
+        sessions = model.users[username]['session ids']
+        session_timestamp = sessions[session_id]
         self.assertEqual(session_timestamp, timestamp)
 
     def test_update_session_id(self):

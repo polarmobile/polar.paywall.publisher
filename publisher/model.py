@@ -63,15 +63,15 @@ class model:
     contains a list of product codes that the user has access to. The next key
     is "password", which contains the user's password. Note that in a
     production system, the user's password should be salted and hashed before
-    it is saved. The last key is "session ids", whose values are a list of
-    tuples containing the session key and a timestamp. An example follows:
+    it is saved. The last key is "session ids", whose value is a dictionary
+    with session id keys and timestamp values. An example follows:
 
     users = {
         "username": {
             "valid": True,
             "products": ["test1","test2"],
             "password": "test"
-            "session ids": [("abcde", 123456)]
+            "session ids": {<session id>: <time stamp>}
             }
         }
     '''
@@ -129,7 +129,8 @@ class model:
         timestamp = datetime.now()
 
         # Insert the session id and the timestamp as a python tuple.
-        model.users['user01']['session ids'].append((session_id, timestamp))
+        sessions = model.users['user01']['session ids']
+        sessions[session_id] = timestamp
 
         # Return the session id.
         return session_id
@@ -151,20 +152,23 @@ class model:
         # the stored timestamp and now.
         expired_limit = timedelta(hours=SESSION_TIMEOUT)
 
-        # Loop through all the valid session ids and store keys that are still
-        # valid.
-        valid_keys = []
-        for session in model.users[username]['session ids']:
-            # Unpack the session id and the timestamp.
-            session_id, timestamp = session
+        # Loop through all the session ids and store only valid ids. We store
+        # only valid ids because we can't delete from the sessions dictionary
+        # while iterating over it.
+        valid_ids = {}
+        sessions = model.users[username]['session ids']
+        for session_id in sessions:
+            # Get the timestamp. 
+            timestamp = sessions[session_id]
 
-            # Check to see if the session has expired. If it hasn't then add
-            # it to the list of valid keys.
+            # Check to see if the session has not expired.
             if (datetime.now() - timestamp) < expired_limit:
-                valid_keys.append((session_id, timestamp))
+                # If the key has not expired, store it so that it can be
+                # accessed later.
+                valid_ids[session_id] = timestamp
 
-        # Update the list of valid session ids.
-        model.users[username]['session ids'] = valid_keys
+        # Swap the current session ids for only valid ids.
+        model.users[username]['session ids'] = valid_ids
 
     def authenticate_user(self, url, username, password, product):
         '''
@@ -257,3 +261,91 @@ class model:
 
         finally:
             self.lock.release()
+
+    def validate_session(self, url, session_id):
+        '''
+        This function takes a session id, attempts to find the users that
+        it is associated with. If it finds a user, it first updates the
+        session tokens and then checks to make sure that the session key
+        is still valid. It then returns the list of products that the user
+        has access to. If it finds no user, it reports that the session key
+        has been expired.
+
+        Client Errors:
+
+            This section documents errors that are returned to the client. Note
+            that the publisher is free to modify the content of these messages
+            as they please.
+
+            SessionExpired:
+
+                Thrown when the session id cannot be validated.
+
+                Code: SessionExpired
+                Message: Your session has expired. Please log back in.
+                HTTP Error Code: 401
+                Required: Yes
+
+            AccountProblem:
+
+                There is a problem with the user's account. The user is
+                prompted to contact technical support.
+
+                Code: AccountProblem
+                Message: Your account is not valid. Please contact support.
+                HTTP Error Code: 403
+                Required: Yes
+        '''
+        # Lock access to the shared memory.
+        self.lock.acquire()
+        try:
+            # Most of the errors in this function share a common code and
+            # status.
+            code = 'SessionExpired'
+            status = 401
+
+            # Loop over all of the users and check for the valid session id.
+            for user in model.users:
+                # Check for the session id.
+                pass
+
+            # Check to see if the username is known.
+            if username not in model.users:
+                message = 'The credentials you have provided are not valid.'
+                raise_error(url, code, message, status)
+
+            # Check to see if the password is valid.
+            if model.users[username]['password'] != password:
+                message = 'The credentials you have provided are not valid.'
+                raise_error(url, code, message, status)
+
+            # Check to see if the user is valid. The check for a valid account
+            # should come after the check for the password as the password
+            # validates the user's identity.
+            if model.users[username]['valid'] == False:
+                code = 'AccountProblem'
+                message = 'Your account is not valid. Please contact support.'
+                raise_error(url, code, message, status)
+
+            # Check to see if the user has access to the requested product.
+            if product not in model.users[username]['products']:
+                code = 'InvalidProduct'
+                message = 'The requested article could not be found.'
+                status = 404
+                raise_error(url, code, message, status)
+
+            # Update all valid session keys.
+            self.update_session_ids(username)
+
+            # Create a new session key.
+            session_id = self.create_session_id(username)
+
+            # Get a list of products that the username has access to.
+            products = model.users[username]['products']
+
+            # Return the session id and products.
+            return (session_id, products)
+
+        finally:
+            self.lock.release()
+
