@@ -337,6 +337,11 @@ class TestErrors(TestCase):
         content = unicode(dumps('test'))
         exception = JsonBadSyntax(content)
 
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
         # Issue the request to the method being tested.
         result = bad_syntax(request, exception)
 
@@ -352,10 +357,55 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         exception = Exception(u'test')
 
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
         with self.assertRaises(AssertionError):
             result = bad_syntax(request, exception)
+
+    def test_unauthorized_pass(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        content = unicode(dumps('test'))
+        exception = JsonUnauthorized(content)
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
+        # Issue the request to the method being tested.
+        result = unauthorized(request, exception)
+
+        # Check the result.
+        self.assertEqual(result, content)
+
+    def test_unauthorized_unknown_exception(self):
+        '''
+        Checks to make sure that the framework fails when an unknown exception
+        is passed.
+        '''
+        # Create the seed data for the test.
+        request = create_request('/test/')
+        exception = Exception(u'test')
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
+        # Issue the request to the method being tested and ensure it raises
+        # an assertion error.
+        with self.assertRaises(AssertionError):
+            result = unauthorized(request, exception)
 
     def test_forbidden_pass(self):
         '''
@@ -366,6 +416,11 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         content = unicode(dumps('test'))
         exception = JsonForbidden(content)
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
 
         # Issue the request to the method being tested.
         result = forbidden(request, exception)
@@ -382,6 +437,11 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         exception = Exception(u'test')
 
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
         with self.assertRaises(AssertionError):
@@ -397,6 +457,11 @@ class TestErrors(TestCase):
         content = unicode(dumps('test'))
         exception = JsonNotFound(content)
 
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
         # Issue the request to the method being tested.
         result = not_found(request, exception)
 
@@ -410,6 +475,11 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
 
         # Issue the request to the method being tested.
         result = not_found(request, exception)
@@ -429,6 +499,11 @@ class TestErrors(TestCase):
         content = unicode(dumps('test'))
         exception = JsonAppError(content)
 
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
 
@@ -442,6 +517,11 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
 
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
@@ -924,15 +1004,15 @@ class TestAuth(TestCase):
         # Catch the exception and analyze it.
         except Exception, exception:
             self.assertIsInstance(exception, JsonBadSyntax)
-            content = '{"error": {"message": "The authParams is not a map.",' \
-                '"code": "InvalidAuthParams", "resource": "/test/"}}'
+            content = u'{"error": {"message": "The authParams is not a '\
+                'map.", "code": "InvalidAuthParams", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
         else:
             raise AssertionError('No exception raised.')
 
-    def test_check_auth_params_type(self):
+    def test_check_auth_params_value_types(self):
         '''
         Tests to see if the check_auth_params function checks for an invalid
         authParams value types.
@@ -1119,7 +1199,7 @@ class TestModel(TestCase):
         model.users = None
 
     @patch('publisher.model.datetime')
-    def create_expired_session(self, model_datetime):
+    def create_expired_session(self, username, model_datetime):
         '''
         In order to test session key expiry, we need to create a session that
         has expired using the mock testing library to override datetime.now.
@@ -1132,15 +1212,8 @@ class TestModel(TestCase):
         timestamp = datetime.now() - timedelta(hours=SESSION_TIMEOUT + 1)
         model_datetime.now.return_value = timestamp
 
-        # Note that the test user has already been loaded in constants.py.
-        username = 'user01'
-
-        # Generate the session id.
-        model().create_session_id(username)
-
-        # Make sure a session id was inserted.
-        session_ids = model.users[username]['session ids']
-        self.assertEqual(len(session_ids), 1)
+        # Generate the session id and return it.
+        return model().create_session_id(username)
 
     @patch('publisher.model.datetime')
     @patch('publisher.model.uuid4')
@@ -1186,11 +1259,10 @@ class TestModel(TestCase):
         need to worry about threading as all the tests are run in a single
         thread, so locking isn't an issue.
         '''
-        # Note that the test user has already been loaded in constants.py.
+        # Create the expired session. user01 has already been created in
+        # constants.py.
         username = 'user01'
-
-        # Create the expired session.
-        self.create_expired_session()
+        session_id = self.create_expired_session(username)
 
         # Expire the old key by calling update.
         model().update_session_ids(username)
@@ -1338,6 +1410,102 @@ class TestModel(TestCase):
 
         # Make sure the products match.
         self.assertEqual(result_products, products)
+
+    def test_validate_session_not_found(self):
+        '''
+        Test to make sure the validate_session function checks to make sure
+        that an invalid session token is handled.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        session_id = 'invalid'
+
+        # Try to validate the invalid session.
+        try:
+            model().validate_session(url, session_id)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonUnauthorized)
+            content = u'{"error": {"message": "Your session has expired. '\
+                'Please log back in.", "code": "SessionExpired", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_validate_session_account_problem(self):
+        '''
+        Test to make sure the validate_session function checks to make sure
+        that an invalid account does not get validated.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+
+        # Create a valid session for the invalid test user.
+        username = 'user02'
+        session_id = model().create_session_id(username)
+
+        # Try to validate the invalid session.
+        try:
+            model().validate_session(url, session_id)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonForbidden)
+            content = u'{"error": {"message": "Your account is not valid. '\
+                'Please contact support.", "code": "AccountProblem", '\
+                '"resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_validate_session_expired_session(self):
+        '''
+        Test to make sure the validate_session function checks to make sure
+        that expired sessions are not valid.
+        '''
+        # Create seed data for the test.
+        url = '/test/'
+        username = 'user01'
+        session_id = self.create_expired_session(username)
+
+        # Try to validate the invalid session.
+        try:
+            model().validate_session(url, session_id)
+
+        # Catch the exception and analyze it.
+        except Exception, exception:
+            self.assertIsInstance(exception, JsonUnauthorized)
+            content = u'{"error": {"message": "Your session has expired. '\
+                'Please log back in.", "code": "SessionExpired", "resource": '\
+                '"/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
+    def test_validate_session(self):
+        '''
+        Test to make sure the validate_session function passes a valid
+        session.
+        '''
+        # Create seed data for the test. user01 is defined in constants.py.
+        url = '/test/'
+        username = 'user01'
+        session_id = model().create_session_id(username)
+        products = ['product01', 'product02']
+
+        # Run validation.
+        result = model().validate_session(url, session_id)
+
+        # Make sure the products match.
+        self.assertEqual(result, products)
 
 
 # If the script is called directly, then the global variable __name__ will

@@ -129,7 +129,7 @@ class model:
         timestamp = datetime.now()
 
         # Insert the session id and the timestamp as a python tuple.
-        sessions = model.users['user01']['session ids']
+        sessions = model.users[username]['session ids']
         sessions[session_id] = timestamp
 
         # Return the session id.
@@ -306,11 +306,8 @@ class model:
 
             # Loop over all of the users and check for the valid session id.
             for username in model.users:
-                # Check for the session id.
-                sessions = model.users[username]['session ids']
-
                 # Check to see if the session id belongs to this user.
-                if session_id not in sessions:
+                if session_id not in model.users[username]['session ids']:
                     # If it doesn't, keep looking.
                     continue
 
@@ -330,7 +327,7 @@ class model:
 
                 # Check to see if the session id is valid; it may have been
                 # invalidated by the call to update_session_ids.
-                if session_id not in sessions:
+                if session_id not in model.users[username]['session ids']:
                     message = 'Your session has expired. Please log back in.'
                     raise_error(url, code, message, status)
 
