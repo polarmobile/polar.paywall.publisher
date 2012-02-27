@@ -72,8 +72,8 @@ def check_authorization_header(url, environment):
         message = 'The authorization token has not been provided.'
         raise_error(url, code, message, status)
 
-    # Make sure the token is provided. The auth-scheme token isn't important
-    # for this part of the API, but it is for others.
+    # Make sure the token's value is correct. The auth-scheme token isn't
+    # important for this part of the API, but it is for others.
     if environment['HTTP_AUTHORIZATION'] != 'PolarPaywallProxyAuthv1.0.0':
         message = 'The authorization token is incorrect.'
         raise_error(url, code, message, status)
@@ -101,8 +101,9 @@ def decode_body(url, body):
             HTTP Error Code: 400.
             Required: No
     '''
-    # Try to decode the json body. If the body cannot be decoded, raise an
-    # error.
+    # If the body cannot be decoded, a proper error response must be made.
+    # This try except block intercepts the default exception and raises
+    # a json encoded exception using the raise_error function.
     try:
         json_body = loads(body)
 
@@ -116,7 +117,7 @@ def decode_body(url, body):
         status = 400
         raise_error(url, code, message, status)
 
-    # Make sure the body has one or two parameters and no more.
+    # Make sure a valid number of parameters have been provided.
     if len(json_body) < 1 or len(json_body) > 2:
         code = 'InvalidFormat'
         message = 'Post body has an invalid number of parameters.'
@@ -241,7 +242,6 @@ def check_auth_params(url, body):
 
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
-        # If the value isn't a string, raise an error.
         if isinstance(body['authParams'][key], unicode) == False:
             message = 'This authParams value is not a string: ' + unicode(key)
             raise_error(url, code, message, status)
@@ -632,48 +632,38 @@ def auth(request, api, version, format, product_code):
     # Store the full URL string so that it can be used to report errors.
     url = request.path
 
-    # Validate the base URL.
+    # Validate the request.
     check_base_url(url, api, version, format)
-
-    # Check for the auth-scheme token.
     check_authorization_header(url, request._environ)
 
-    # Decode the json body from the post body.
+    # Validate the request body.
     body = decode_body(url, request.body)
-
-    # Check to make sure the device parameter is valid.
     check_device(url, body)
-
-    # Check to make sure the authParams parameter correct with respect to the
-    # API.
     check_auth_params(url, body)
 
-    # Check to make sure that the parameters that this implementation expects
-    # are there.
+    # Note that the authentication parameters that will be passed into this
+    # service are configurable through Polar's server. The function
+    # check_publisher_auth_params ensures that the authentication parameters
+    # specific to this publisher's implementation (username, password) exist
+    # and are strings.
     check_publisher_auth_params(url, body)
-
-    # Extract the username and password from the body.
     username = body['authParams']['username']
     password = body['authParams']['password']
 
     # Authenticate the user to get the session id and the products.
-    data_model = model()
-    (session_id, products) = data_model.authenticate_user(url, username,
-                                                 password, product_code)
+    (session_id, products) = model().authenticate_user(url, username, password,
+                                                                  product_code)
 
-    # Create the resulting response.
+    # Create the response body.
     result = {}
     result['sessionKey'] = session_id
     result['products'] = products
-
-    # Encode the result as a json object.
     content = dumps(result)
 
-    # Extract the authentication token.
+    # The API requires that the authorization header be mirrored back for
+    # debugging purposes.
     authorization = request._environ['HTTP_AUTHORIZATION']
     headers = [('Authorization', authorization)]
-
-    # Create and send a response.
     status = 200
     content_type = 'application/json'
     return Response(content, headers, status, content_type)
