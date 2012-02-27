@@ -124,7 +124,6 @@ def decode_body(url, body):
         status = 400
         raise_error(url, code, message, status)
 
-    # Return the decoded body.
     return json_body
 
 
@@ -632,7 +631,7 @@ def auth(request, api, version, format, product_code):
     # Store the full URL string so that it can be used to report errors.
     url = request.path
 
-    # Validate the request.
+    # Validate the request and its headers.
     check_base_url(url, api, version, format)
     check_authorization_header(url, request._environ)
 
