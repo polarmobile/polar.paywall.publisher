@@ -39,7 +39,7 @@ from constants import API, VERSION, FORMAT, PRODUCT_CODE
 from publisher.model import model
 
 # Used to encode post bodies using json.
-from json import dumps
+from simplejson import dumps
 
 
 def get_session_id(url, environment):

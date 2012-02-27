@@ -27,7 +27,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Used to encode the resulting error into json.
-from json import dumps
+from simplejson import dumps
 
 # Used to generate exceptions.
 from itty import RequestError, NotFound, AppError, Forbidden

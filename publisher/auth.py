@@ -33,7 +33,7 @@ from itty import post, Response
 from publisher.utils import check_base_url, raise_error
 
 # Used to decode and encode post bodies that contain json encoded data.
-from json import loads, dumps
+from simplejson import loads, dumps
 
 # Used to authenticate a user to the data model.
 from publisher.model import model
