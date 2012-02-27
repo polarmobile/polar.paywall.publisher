@@ -1064,7 +1064,7 @@ class TestAuth(TestCase):
         body['authParams'] = {}
         body['authParams']['username'] = 'user01'
         body['authParams']['password'] = 'test'
-        request.body = dumps(body)
+        request.body = unicode(dumps(body))
 
         # Create seed data for the test. Mock will override uuid4 in the call
         # to create_session_id to insert our testing values.
