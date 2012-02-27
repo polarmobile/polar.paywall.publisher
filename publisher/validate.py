@@ -217,10 +217,10 @@ def validate(request, api, version, format, product_code):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
-            
+
             {
                 "sessionKey": "9c4a51cc08d1",
-                
+
                 "products": [
                     "gold-level",
                     "silver-level"

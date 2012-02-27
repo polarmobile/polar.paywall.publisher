@@ -345,4 +345,3 @@ class model:
 
         finally:
             self.lock.release()
-

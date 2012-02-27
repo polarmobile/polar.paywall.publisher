@@ -1409,6 +1409,7 @@ class TestModel(TestCase):
         # Make sure the products match.
         self.assertEqual(result, products)
 
+
 class TestValidate(TestCase):
     '''
     Test the code in publisher/validate.py.

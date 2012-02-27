@@ -44,7 +44,7 @@ from constants import API, VERSION, FORMAT, PRODUCT_CODE
 
 def check_authorization_header(url, environment):
     '''
-    Checks for the existence of the auth-scheme token. Note that the validate 
+    Checks for the existence of the auth-scheme token. Note that the validate
     API entry point has a different auth-scheme token.
 
     Server Errors:
