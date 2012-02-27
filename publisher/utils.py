@@ -60,7 +60,6 @@ class JsonForbidden(Forbidden):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
@@ -69,7 +68,6 @@ class JsonNotFound(NotFound):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
@@ -78,7 +76,6 @@ class JsonAppError(AppError):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
@@ -105,12 +102,8 @@ def encode_error(url, code, message):
     This function takes the url, code and message and returns a json string
     containing the encoded values.
     '''
-    # Create a hash table to store the message.
     result = {}
     result['error'] = {}
-
-    # Store the error values. Note that the order of insertion does not
-    # matter as this is a hash table.
     result['error']['code'] = code
     result['error']['message'] = message
     result['error']['resource'] = url
