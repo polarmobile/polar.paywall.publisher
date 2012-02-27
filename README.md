@@ -2,6 +2,11 @@
 
 This project is a simple sample web server for the Polar Mobile Paywall API.
 
+NOTE: You may be tempted to adapt this source code to work with your existing
+infrastructure. This strategy is certifiably a bad idea as this example was
+not designed to scale. A proper implementation requires a complete rewrite of
+this example.
+
 ## Contents ##
 
  * __Definitions__: Definitions of bolded terms used throughout this document.
