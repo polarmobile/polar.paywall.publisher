@@ -82,7 +82,7 @@ class JsonAppError(AppError):
 def encode_error(url, code, message):
     '''
     This utility function is called by raise_error to encode the url, code and
-    message parameters. Error are encoded using json. The body of the error is
+    message parameters. Errors are encoded using json. The body of the error is
     a json map with a key called "error". The "error" value is another map with
     the following parameters:
 
