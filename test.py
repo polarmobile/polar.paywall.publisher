@@ -30,7 +30,7 @@
 from unittest import TestCase, main
 
 # Used to mimic objects in order to test more complex calls.
-from mock import patch, Mock
+from mock import patch
 
 # Used to generate fake http requests and test for responses.
 from itty import Request, Response
@@ -54,10 +54,7 @@ from publisher.auth import (check_authorization_header, decode_body,
 from publisher.model import model
 
 # Used to reset the models singleton and test timeouts.
-from publisher.constants import SESSION_TIMEOUT, users
-
-# Used to mimic functions like datetime to make testing predictable.
-from mock import patch, Mock
+from publisher.constants import SESSION_TIMEOUT
 
 # Used to test the timestamps in model.py.
 from datetime import datetime, timedelta
@@ -886,8 +883,8 @@ class TestAuth(TestCase):
         body = {}
 
         # Issue the request to the method being tested. The function should not
-        # do anything.
-        result = check_auth_params(url, body)
+        # do anything or raise any exceptions.
+        check_auth_params(url, body)
 
     def test_check_auth_params_type(self):
         '''
@@ -952,8 +949,8 @@ class TestAuth(TestCase):
         body['authParams']['test'] = u'test'
 
         # Issue the request to the method being tested. The function should not
-        # do anything.
-        result = check_auth_params(url, body)
+        # do anything or raise any exceptions.
+        check_auth_params(url, body)
 
     def test_check_publisher_auth_params_exists(self):
         '''
@@ -1164,7 +1161,7 @@ class TestModel(TestCase):
         # Create the expired session. user01 has already been created in
         # constants.py.
         username = 'user01'
-        session_id = self.create_expired_session(username)
+        self.create_expired_session(username)
 
         # Expire the old key by calling update.
         model().update_session_ids(username)

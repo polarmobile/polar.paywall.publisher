@@ -107,7 +107,7 @@ def decode_body(url, body):
     try:
         json_body = loads(body)
 
-    except ValueError, exception:
+    except ValueError:
         # If a ValueError occurred, the json decoder could not decode the
         # body of the request. We need to return an error to the client.
         # Note that we do not return the body of the request as it could
