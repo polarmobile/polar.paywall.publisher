@@ -131,8 +131,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -156,8 +155,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -181,8 +179,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonForbidden))
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -206,8 +203,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -231,8 +227,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonAppError))
+        except JsonAppError, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -256,8 +251,7 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = '{"error": {"message": "The requested api is not '\
                 'implemented: test", "code": "InvalidAPI", "resource": '\
                 '"/test/"}}'
@@ -282,8 +276,7 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = '{"error": {"message": "The requested version is not '\
                 'implemented: test", "code": "InvalidVersion", "resource": '\
                 '"/test/"}}'
@@ -308,7 +301,7 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
+        except JsonNotFound, exception:
             self.assertTrue(isinstance(exception, JsonNotFound))
             content = '{"error": {"message": "The requested format is not '\
                 'implemented: test", "code": "InvalidFormat", "resource": '\
@@ -544,8 +537,7 @@ class TestAuth(TestCase):
             check_authorization_header(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The authorization token has '\
                 'not been provided.", "code": "InvalidAuthScheme", '\
                 '"resource": "/test/"}}'
@@ -570,8 +562,7 @@ class TestAuth(TestCase):
             check_authorization_header(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The authorization token is '\
                 'incorrect.", "code": "InvalidAuthScheme", "resource": '\
                 '"/test/"}}'
@@ -607,8 +598,7 @@ class TestAuth(TestCase):
             decode_body(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "Could not decode post body. '\
                 'json is expected.", "code": "InvalidFormat", "resource": '\
                 '"/test/"}}'
@@ -636,8 +626,7 @@ class TestAuth(TestCase):
             decode_body(url, dumps(body))
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "Post body has an invalid '\
                 'number of parameters.", "code": "InvalidFormat", '\
                 '"resource": "/test/"}}'
@@ -661,8 +650,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The device has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -686,8 +674,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The device is not a map.", '\
                 '"code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -711,8 +698,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The manufacturer has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -737,8 +723,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The manufacturer is not a '\
                 'string.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -763,8 +748,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The model has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -790,8 +774,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The model is not a string.",'\
                 ' "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -817,8 +800,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The os_version has not been '\
                 'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -845,8 +827,7 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The os_version is not a '\
                 'string.", "code": "InvalidDevice", "resource": '\
                 '"/test/"}}'
@@ -901,8 +882,7 @@ class TestAuth(TestCase):
             check_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = u'{"error": {"message": "The authParams is not a '\
                 'map.", "code": "InvalidAuthParams", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -927,8 +907,7 @@ class TestAuth(TestCase):
             check_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "This authParams value is not a '\
                 'string: test", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
@@ -967,8 +946,7 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The authParams has not been '\
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
@@ -994,8 +972,7 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The username has not been '\
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
@@ -1022,8 +999,7 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The password has not been '\
                 'provided.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
@@ -1186,8 +1162,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1213,8 +1188,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1240,8 +1214,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'
@@ -1267,8 +1240,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = u'{"error": {"message": "The requested article could '\
                 'not be found.", "code": "InvalidProduct", "resource": '\
                 '"/test/"}}'
@@ -1324,8 +1296,7 @@ class TestModel(TestCase):
             model().validate_session(url, session_id)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "Your session has expired. '\
                 'Please log back in.", "code": "SessionExpired", "resource": '\
                 '"/test/"}}'
@@ -1352,8 +1323,7 @@ class TestModel(TestCase):
             model().validate_session(url, session_id)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonForbidden))
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'
@@ -1378,8 +1348,7 @@ class TestModel(TestCase):
             model().validate_session(url, session_id)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "Your session has expired. '\
                 'Please log back in.", "code": "SessionExpired", "resource": '\
                 '"/test/"}}'
@@ -1425,8 +1394,7 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The authorization token has '\
                 'not been provided.", "code": "InvalidAuthScheme", '\
                 '"resource": "/test/"}}'
@@ -1451,8 +1419,7 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The authorization token is '\
                 'incorrect.", "code": "InvalidAuthScheme", "resource": '\
                 '"/test/"}}'
@@ -1478,8 +1445,7 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = '{"error": {"message": "The session id has not been '\
                 'provided.", "code": "InvalidAuthScheme", "resource": '\
                 '"/test/"}}'
@@ -1538,8 +1504,7 @@ class TestValidate(TestCase):
             validate(request, api, version, format, product_code)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = u'{"error": {"message": "Invalid post body.", '\
                 '"code": "InvalidFormat", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
