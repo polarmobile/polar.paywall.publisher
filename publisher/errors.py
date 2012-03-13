@@ -141,11 +141,7 @@ def not_found(request, exception):
     request (as opposed to its error code, message and resource) and continue
     processing.
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
+    Errors:
 
         NoHandler:
 
@@ -155,7 +151,8 @@ def not_found(request, exception):
             Polar server expects is not implemented on the publisher.
 
             Code: NoHandler
-            Message: No handler could be found for the requested resource.
+            Message: An error occurred. Please contact support.
+            Debug: No handler could be found for the requested resource.
             HTTP Error Code: 404
             Required: No
     '''
@@ -184,8 +181,9 @@ def not_found(request, exception):
     else:
         url = request.path
         code = 'NoHandler'
-        message = 'No handler could be found for the requested resource.'
-        content = encode_error(url, code, message)
+        message = 'An error occurred. Please contact support.'
+        debug = 'No handler could be found for the requested resource.'
+        content = encode_error(url, code, message, debug)
 
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
@@ -222,7 +220,8 @@ def internal_error(request, exception):
             exception is unknown).
 
             Code: InternalError
-            Message: An internal server error occurred.
+            Message: An error occurred. Please contact support.
+            Message: An internal server error occurred. Please check logs.
             HTTP Error Code: 500
             Required: No
     '''
@@ -253,8 +252,9 @@ def internal_error(request, exception):
     else:
         url = request.path
         code = 'InternalError'
-        message = 'An internal server error occurred.'
-        content = encode_error(url, code, message)
+        message = 'An error occurred. Please contact support.'
+        debug = 'An internal server error occurred. Please check logs.'
+        content = encode_error(url, code, message, debug)
 
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)

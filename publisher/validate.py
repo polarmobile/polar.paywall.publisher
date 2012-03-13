@@ -60,26 +60,28 @@ def get_session_id(url, environment):
             format.
 
             Code: InvalidAuthScheme
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400.
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidAuthScheme'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # Make sure the token is provided.
     if 'HTTP_AUTHORIZATION' not in environment:
-        message = 'The authorization token has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The authorization token has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure the token's value is correct. This token contains the session
     # id. It is not passed in the http body.
     token = environment['HTTP_AUTHORIZATION']
     scheme = 'PolarPaywallProxySessionv1.0.0 session:'
     if token.startswith(scheme) == False:
-        message = 'The authorization token is incorrect.'
-        raise_error(url, code, message, status)
+        debug = 'The authorization token is incorrect.'
+        raise_error(url, code, message, status, debug)
 
     # Try to extract the session key. The syntax below extracts the characters
     # from the length of the scheme string to the end. Note that whitespace
@@ -88,8 +90,8 @@ def get_session_id(url, environment):
 
     # Check to make sure a session id has actually been provided.
     if len(session_id) == 0:
-        message = 'The session id has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The session id has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Return the session key.
     return session_id
@@ -227,11 +229,12 @@ def validate(request, api, version, format, product_code):
                 ]
             }
 
-    Client Errors:
+    Errors:
 
-        This section documents errors that are returned to the client. Note
-        that the publisher is free to modify the content of these messages as
-        they please.
+        Some of the following errors are marked optional. They are included in
+        this example for completeness and testing purposes. Implementing them
+        makes testing the connection between Polar's server and the publishers
+        server easier.
 
         AccountProblem:
 
@@ -262,23 +265,13 @@ def validate(request, api, version, format, product_code):
             HTTP Error Code: 401
             Required: Yes
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
-
-        Some of the following errors are marked optional. They are included in
-        this example for completeness and testing purposes. Implementing them
-        makes testing the connection between Polar's server and the publishers
-        server easier.
-
         InvalidAPI:
 
             Returned when the publisher does not recognize the requested api.
 
             Code: InvalidAPI
-            Message: The requested api is not implemented: <api>
+            Message: An error occurred. Please contact support.
+            Debug: The requested api is not implemented: <api>
             HTTP Error Code: 404
             Required: No
 
@@ -288,7 +281,8 @@ def validate(request, api, version, format, product_code):
             version.
 
             Code: InvalidVersion
-            Message: The requested version is not implemented: <version>
+            Message: An error occurred. Please contact support.
+            Debug: The requested version is not implemented: <version>
             HTTP Error Code: 404
             Required: No
 
@@ -298,8 +292,9 @@ def validate(request, api, version, format, product_code):
             format.
 
             Code: InvalidFormat
-            Message: Varies with the error.
-            HTTP Error Code: 400.
+            Message: An error occurred. Please contact support.
+            Debug: The requested format is not implemented: <format>
+            HTTP Error Code: 404
             Required: No
 
         InvalidAuthScheme:
@@ -308,6 +303,7 @@ def validate(request, api, version, format, product_code):
             format.
 
             Code: InvalidAuthScheme
+            Message: An error occurred. Please contact support.
             Message: Varies with the error.
             HTTP Error Code: 400.
             Required: No

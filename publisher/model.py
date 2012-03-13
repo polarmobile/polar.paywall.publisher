@@ -318,8 +318,8 @@ class model:
                 # the password validates the user's identity.
                 if model.users[username]['valid'] == False:
                     code = 'AccountProblem'
-                    message = 'Your account is not valid. Please contact '\
-                              'support.'
+                    message = ('Your account is not valid. Please contact '
+                               'support.')
                     status = 403
                     raise_error(url, code, message, status)
 

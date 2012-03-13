@@ -59,24 +59,26 @@ def check_authorization_header(url, environment):
             format.
 
             Code: InvalidAuthScheme
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400.
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidAuthScheme'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # Make sure the token is provided.
     if 'HTTP_AUTHORIZATION' not in environment:
-        message = 'The authorization token has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The authorization token has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure the token's value is correct. The auth-scheme token isn't
     # important for this part of the API, but it is for others.
     if environment['HTTP_AUTHORIZATION'] != 'PolarPaywallProxyAuthv1.0.0':
-        message = 'The authorization token is incorrect.'
-        raise_error(url, code, message, status)
+        debug = 'The authorization token is incorrect.'
+        raise_error(url, code, message, status, debug)
 
 
 def decode_body(url, body):
@@ -97,10 +99,16 @@ def decode_body(url, body):
             format.
 
             Code: InvalidFormat
-            Message: Varies with the error.
+            Message: The requested article could not be found.
+            Debug: Varies with the error.
             HTTP Error Code: 400.
             Required: No
     '''
+    # All of the errors in this function share a common code and status.
+    code = 'InvalidFormat'
+    status = 400
+    message = 'An error occurred. Please contact support.'
+
     # If the body cannot be decoded, a proper error response must be made.
     # This try except block intercepts the default exception and raises
     # a json encoded exception using the raise_error function.
@@ -112,17 +120,13 @@ def decode_body(url, body):
         # body of the request. We need to return an error to the client.
         # Note that we do not return the body of the request as it could
         # contain access credentials.
-        code = 'InvalidFormat'
-        message = 'Could not decode post body. json is expected.'
-        status = 400
-        raise_error(url, code, message, status)
+        debug = 'Could not decode post body. json is expected.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure a valid number of parameters have been provided.
     if len(json_body) < 1 or len(json_body) > 2:
-        code = 'InvalidFormat'
-        message = 'Post body has an invalid number of parameters.'
-        status = 400
-        raise_error(url, code, message, status)
+        debug = 'Post body has an invalid number of parameters.'
+        raise_error(url, code, message, status, debug)
 
     return json_body
 
@@ -145,57 +149,59 @@ def check_device(url, body):
             properly.
 
             Code: InvalidDevice
-            Message: Varies with the error.
+            Message: The requested article could not be found.
+            Debug: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidDevice'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # Validate that the device is provided as a parameter to the body. This
     # sample publisher does not store the device, but a production system
     # could store these values in order to perform analysis on the types of
     # devices that access products.
     if 'device' not in body:
-        message = 'The device has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The device has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure the device is a dictionary.
     if isinstance(body['device'], dict) == False:
-        message = 'The device is not a map.'
-        raise_error(url, code, message, status)
+        debug = 'The device is not a map.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure that the manufacturer of the device has been
     # provided.
     if 'manufacturer' not in body['device']:
-        message = 'The manufacturer has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The manufacturer has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure the manufacturer is of the right type.
     if isinstance(body['device']['manufacturer'], unicode) == False:
-        message = 'The manufacturer is not a string.'
-        raise_error(url, code, message, status)
+        debug = 'The manufacturer is not a string.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure that the model of the device has been provided.
     if 'model' not in body['device']:
-        message = 'The model has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The model has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure the model is of the right type.
     if isinstance(body['device']['model'], unicode) == False:
-        message = 'The model is not a string.'
-        raise_error(url, code, message, status)
+        debug = 'The model is not a string.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure that the os_version of the device has been provided.
     if 'os_version' not in body['device']:
-        message = 'The os_version has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The os_version has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure the os_version is of the right type.
     if isinstance(body['device']['os_version'], unicode) == False:
-        message = 'The os_version is not a string.'
-        raise_error(url, code, message, status)
+        debug = 'The os_version is not a string.'
+        raise_error(url, code, message, status, debug)
 
 
 def check_auth_params(url, body):
@@ -222,13 +228,15 @@ def check_auth_params(url, body):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidAuthParams'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # Note that not having an authParams key is valid.
     if 'authParams' not in body:
@@ -236,14 +244,14 @@ def check_auth_params(url, body):
 
     # When authParams is provided, the type must be a dictionary.
     if isinstance(body['authParams'], dict) == False:
-        message = 'The authParams is not a map.'
-        raise_error(url, code, message, status)
+        debug = 'The authParams is not a map.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
         if isinstance(body['authParams'][key], unicode) == False:
-            message = 'This authParams value is not a string: ' + unicode(key)
-            raise_error(url, code, message, status)
+            debug = 'This authParams value is not a string: ' + unicode(key)
+            raise_error(url, code, message, status, debug)
 
 
 def check_publisher_auth_params(url, body):
@@ -270,31 +278,33 @@ def check_publisher_auth_params(url, body):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidAuthParams'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # In this implementation, authParams is required. The check for authParams
     # being a dictionary has already been carried out by check_auth_params.
     if 'authParams' not in body:
-        message = 'The authParams has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The authParams has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure username is provided. The check_auth_params has already
     # checked the type of the username.
     if 'username' not in body['authParams']:
-        message = 'The username has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The username has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Make sure password is provided. The check_auth_params has already
     # checked the type of the password.
     if 'password' not in body['authParams']:
-        message = 'The password has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The password has not been provided.'
+        raise_error(url, code, message, status, debug)
 
 
 @post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
@@ -524,11 +534,12 @@ def auth(request, api, version, format, product_code):
                 ]
             }
 
-    Client Errors:
+    Errors:
 
-        This section documents errors that are returned to the client. Note
-        that the publisher is free to modify the content of these messages as
-        they please.
+        Some of the following errors are marked optional. They are included in
+        this example for completeness and testing purposes. Implementing them
+        makes testing the connection between Polar's server and the publishers
+        server easier.
 
         InvalidPaywallCredentials:
 
@@ -544,7 +555,7 @@ def auth(request, api, version, format, product_code):
             There is a problem with the user's account. The user is
             prompted to contact technical support.
 
-            Code: InvalidPaywallCredentials
+            Code: AccountProblem
             Message: Your account is not valid. Please contact support.
             HTTP Error Code: 403
             Required: Yes
@@ -558,23 +569,13 @@ def auth(request, api, version, format, product_code):
             HTTP Error Code: 404
             Required: Yes
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
-
-        Some of the following errors are marked optional. They are included in
-        this example for completeness and testing purposes. Implementing them
-        makes testing the connection between Polar's server and the publishers
-        server easier.
-
         InvalidAPI:
 
             Returned when the publisher does not recognize the requested api.
 
             Code: InvalidAPI
-            Message: The requested api is not implemented: <api>
+            Message: An error occurred. Please contact support.
+            Debug: The requested api is not implemented: <api>
             HTTP Error Code: 404
             Required: No
 
@@ -584,7 +585,8 @@ def auth(request, api, version, format, product_code):
             version.
 
             Code: InvalidVersion
-            Message: The requested version is not implemented: <version>
+            Message: An error occurred. Please contact support.
+            Debug: The requested version is not implemented: <version>
             HTTP Error Code: 404
             Required: No
 
@@ -594,8 +596,9 @@ def auth(request, api, version, format, product_code):
             format.
 
             Code: InvalidFormat
-            Message: Varies with the error.
-            HTTP Error Code: 400.
+            Message: An error occurred. Please contact support.
+            Debug: The requested format is not implemented: <format>
+            HTTP Error Code: 404
             Required: No
 
         InvalidDevice:
@@ -604,7 +607,8 @@ def auth(request, api, version, format, product_code):
             properly.
 
             Code: InvalidDevice
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400
             Required: No
 
@@ -614,7 +618,8 @@ def auth(request, api, version, format, product_code):
             properly.
 
             Code: InvalidAuthParams
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400
             Required: No
 
@@ -624,7 +629,8 @@ def auth(request, api, version, format, product_code):
             format.
 
             Code: InvalidAuthScheme
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400.
             Required: No
     '''

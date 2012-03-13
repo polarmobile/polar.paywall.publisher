@@ -112,7 +112,7 @@ class TestUtils(TestCase):
         result = encode_error(url, code, message)
 
         # Check the result.
-        content = '{"error": {"message": "This is a test error.", '\
+        content = u'{"error": {"message": "This is a test error.", '\
             '"code": "TestError", "resource": "/test/"}}'
         self.assertEqual(result, content)
 
@@ -252,9 +252,10 @@ class TestUtils(TestCase):
 
         # Catch the exception and analyze it.
         except JsonNotFound, exception:
-            content = '{"error": {"message": "The requested api is not '\
-                'implemented: test", "code": "InvalidAPI", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The requested api is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidAPI", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -277,9 +278,10 @@ class TestUtils(TestCase):
 
         # Catch the exception and analyze it.
         except JsonNotFound, exception:
-            content = '{"error": {"message": "The requested version is not '\
-                'implemented: test", "code": "InvalidVersion", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The requested version is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidVersion", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -303,9 +305,10 @@ class TestUtils(TestCase):
         # Catch the exception and analyze it.
         except JsonNotFound, exception:
             self.assertTrue(isinstance(exception, JsonNotFound))
-            content = '{"error": {"message": "The requested format is not '\
-                'implemented: test", "code": "InvalidFormat", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The requested format is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -472,8 +475,10 @@ class TestErrors(TestCase):
         result = not_found(request, exception)
 
         # Check the result.
-        content = u'{"error": {"message": "No handler could be found for the '\
-            'requested resource.", "code": "NoHandler", "resource": "/test/"}}'
+        content = u'{"debug": {"message": "No handler could be found for the '\
+            'requested resource."}, "error": {"message": "An error occurred. '\
+            'Please contact support.", "code": "NoHandler", "resource": '\
+            '"/test/"}}'
         self.assertEqual(result, content)
 
     def test_internal_error_pass(self):
@@ -514,8 +519,10 @@ class TestErrors(TestCase):
         result = internal_error(request, exception)
 
         # Check the result.
-        content = u'{"error": {"message": "An internal server error '\
-            'occurred.", "code": "InternalError", "resource": "/test/"}}'
+        content = u'{"debug": {"message": "An internal server error occurred.'\
+            ' Please check logs."}, "error": {"message": "An error occurred. '\
+            'Please contact support.", "code": "InternalError", "resource": '\
+            '"/test/"}}'
         self.assertEqual(result, content)
 
 
@@ -538,9 +545,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The authorization token has '\
-                'not been provided.", "code": "InvalidAuthScheme", '\
-                '"resource": "/test/"}}'
+            content = u'{"debug": {"message": "The authorization token has '\
+                'not been provided."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidAuthScheme", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -563,9 +571,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The authorization token is '\
-                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The authorization token is '\
+                'incorrect."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -599,9 +608,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "Could not decode post body. '\
-                'json is expected.", "code": "InvalidFormat", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "Could not decode post body. '\
+                'json is expected."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -627,9 +637,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "Post body has an invalid '\
-                'number of parameters.", "code": "InvalidFormat", '\
-                '"resource": "/test/"}}'
+            content = u'{"debug": {"message": "Post body has an invalid '\
+                'number of parameters."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -651,8 +662,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The device has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The device has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidDevice", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -675,8 +688,9 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The device is not a map.", '\
-                '"code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The device is not a map."}, '\
+                '"error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -699,8 +713,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The manufacturer has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The manufacturer has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -724,8 +740,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The manufacturer is not a '\
-                'string.", "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The manufacturer is not a '\
+                'string."}, "error": {"message": "An error occurred. Please '\
+                'contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -749,8 +767,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The model has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The model has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidDevice", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -775,8 +795,9 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The model is not a string.",'\
-                ' "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The model is not a string."}, '\
+                '"error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -801,8 +822,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The os_version has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The os_version has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -828,8 +851,9 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The os_version is not a '\
-                'string.", "code": "InvalidDevice", "resource": '\
+            content = u'{"debug": {"message": "The os_version is not a '\
+                'string."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
@@ -883,8 +907,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = u'{"error": {"message": "The authParams is not a '\
-                'map.", "code": "InvalidAuthParams", "resource": "/test/"}}'
+            content = u'{"debug": {"message": "The authParams is not a map.'\
+                '"}, "error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -908,9 +934,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "This authParams value is not a '\
-                'string: test", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "This authParams value is not a '\
+                'string: test"}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -947,8 +974,9 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The authParams has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
+            content = u'{"debug": {"message": "The authParams has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidAuthParams", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
@@ -973,9 +1001,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The username has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The username has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1000,9 +1029,10 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The password has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The password has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1395,9 +1425,10 @@ class TestValidate(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The authorization token has '\
-                'not been provided.", "code": "InvalidAuthScheme", '\
-                '"resource": "/test/"}}'
+            content = u'{"debug": {"message": "The authorization token has '\
+                'not been provided."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidAuthScheme", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1420,9 +1451,10 @@ class TestValidate(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The authorization token is '\
-                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The authorization token is '\
+                'incorrect."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1446,9 +1478,10 @@ class TestValidate(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = '{"error": {"message": "The session id has not been '\
-                'provided.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+            content = u'{"debug": {"message": "The session id has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
