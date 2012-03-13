@@ -934,8 +934,8 @@ class TestAuth(TestCase):
 
         # Catch the exception and analyze it.
         except JsonBadSyntax, exception:
-            content = u'{"debug": {"message": "This authParams value is not a '\
-                'string: test"}, "error": {"message": "An error occurred. '\
+            content = u'{"debug": {"message": "This authParams value is not a'\
+                ' string: test"}, "error": {"message": "An error occurred. '\
                 'Please contact support.", "code": "InvalidAuthParams", '\
                 '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -976,8 +976,8 @@ class TestAuth(TestCase):
         except JsonBadSyntax, exception:
             content = u'{"debug": {"message": "The authParams has not been '\
                 'provided."}, "error": {"message": "An error occurred. Please'\
-                ' contact support.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+                ' contact support.", "code": "InvalidAuthParams", "resource":'\
+                ' "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
