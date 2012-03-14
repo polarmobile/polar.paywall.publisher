@@ -214,13 +214,13 @@ def check_base_url(url, api, version, format):
         raise_error(url, code, message, status, debug)
 
     # Check to make sure the version is correct.
-    elif version != 'v1.0.0':
+    if version != 'v1.0.0':
         code = 'InvalidVersion'
         debug = 'The requested version is not implemented: ' + str(version)
         raise_error(url, code, message, status, debug)
 
     # Check to make sure the format is correct.
-    elif format != 'json':
+    if format != 'json':
         code = 'InvalidFormat'
         debug = 'The requested format is not implemented: ' + str(format)
         raise_error(url, code, message, status, debug)
