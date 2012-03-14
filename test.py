@@ -315,6 +315,19 @@ class TestUtils(TestCase):
         else:
             raise AssertionError('No exception raised.')
 
+    def test_check_base_url(self):
+        '''
+        A valid pass for check_base_url.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'json'
+
+        # This function should raise no exception.
+        check_base_url(url, api, version, format)
+
 
 class TestErrors(TestCase):
     '''
