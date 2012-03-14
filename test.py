@@ -304,7 +304,6 @@ class TestUtils(TestCase):
 
         # Catch the exception and analyze it.
         except JsonNotFound, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
             content = u'{"debug": {"message": "The requested format is not '\
                 'implemented: test"}, "error": {"message": "An error '\
                 'occurred. Please contact support.", "code": "InvalidFormat",'\
