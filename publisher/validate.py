@@ -33,7 +33,7 @@ from itty import post, Response
 from publisher.utils import check_base_url, raise_error
 
 # Used to match URLs.
-from constants import API, VERSION, FORMAT, PRODUCT_CODE
+from constants import (VALIDATE, SESSION_AUTHORIZATION_HEADER)
 
 # Used to validate a session key.
 from publisher.model import model
@@ -78,7 +78,7 @@ def get_session_id(url, environment):
     # Make sure the token's value is correct. This token contains the session
     # id. It is not passed in the http body.
     token = environment['HTTP_AUTHORIZATION']
-    scheme = 'PolarPaywallProxySessionv1.0.0 session:'
+    scheme = SESSION_AUTHORIZATION_HEADER + ' session:'
     if token.startswith(scheme) == False:
         debug = 'The authorization token is incorrect.'
         raise_error(url, code, message, status, debug)
@@ -97,7 +97,7 @@ def get_session_id(url, environment):
     return session_id
 
 
-@post(API + VERSION + FORMAT + r'/validate' + PRODUCT_CODE)
+@post(VALIDATE)
 def validate(request, api, version, format, product_code):
     '''
     Overview:

@@ -34,6 +34,16 @@ VERSION = r'/(?P<version>v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,})'
 FORMAT = r'/(?P<format>\w+)'
 PRODUCT_CODE = r'/(?P<product_code>\w+)'
 
+# Regex for the auth entry point.
+AUTH = API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE
+
+# Regex for the validate entry point.
+VALIDATE = API + VERSION + FORMAT + r'/validate' + PRODUCT_CODE
+
+# Authorization headers.
+AUTH_AUTHORIZATION_HEADER = 'PolarPaywallProxyAuthv1.0.0'
+SESSION_AUTHORIZATION_HEADER = 'PolarPaywallProxySessionv1.0.0'
+
 # The number of hours before a session key times out. Note that this value is
 # set intentionally low so that development tests hit edge cases more
 # frequently.

@@ -36,6 +36,11 @@ from publisher.utils import (JsonBadSyntax, JsonUnauthorized, JsonForbidden,
 # Used to encode default errors, if a non-json error is encountered.
 from publisher.utils import encode_error
 
+# Used to match the urls for 401 errors.
+from re import match
+from constants import (AUTH, VALIDATE, AUTH_AUTHORIZATION_HEADER,
+                       SESSION_AUTHORIZATION_HEADER)
+
 
 @error(400)
 def bad_syntax(request, exception):
@@ -50,14 +55,7 @@ def bad_syntax(request, exception):
     # All exceptions handled by this function are json encoded 403 errors.
     content_type = 'application/json'
     status = 404
-
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
     headers = []
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('WWW-Authenticate', authorization))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -81,12 +79,14 @@ def unauthorized(request, exception):
     status = 401
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('WWW-Authenticate', authorization))
+    # WWW-Authenticate header is returned to tell the client which
+    # Authorization schemes are applicable to this resource. First, check the
+    # auth entry point.
+    if match(AUTH, request.path) != None:
+        headers.append(('WWW-Authenticate', AUTH_AUTHORIZATION_HEADER))
+    # Check the validate entry point.
+    elif match(VALIDATE, request.path) != None:
+        headers.append(('WWW-Authenticate', SESSION_AUTHORIZATION_HEADER))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -110,14 +110,6 @@ def forbidden(request, exception):
     content_type = 'application/json'
     status = 403
     headers = []
-
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('WWW-Authenticate', authorization))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -160,14 +152,6 @@ def not_found(request, exception):
     content_type = 'application/json'
     status = 404
     headers = []
-
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('WWW-Authenticate', authorization))
 
     # The content is determined below.
     content = ''
@@ -229,14 +213,6 @@ def internal_error(request, exception):
     content_type = 'application/json'
     status = 500
     headers = []
-
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('WWW-Authenticate', authorization))
 
     # The content is determined below.
     content = ''

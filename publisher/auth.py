@@ -39,7 +39,7 @@ from simplejson import loads, dumps
 from publisher.model import model
 
 # Used to match URLs.
-from constants import API, VERSION, FORMAT, PRODUCT_CODE
+from constants import (AUTH, AUTH_AUTHORIZATION_HEADER)
 
 
 def check_authorization_header(url, environment):
@@ -76,7 +76,7 @@ def check_authorization_header(url, environment):
 
     # Make sure the token's value is correct. The auth-scheme token isn't
     # important for this part of the API, but it is for others.
-    if environment['HTTP_AUTHORIZATION'] != 'PolarPaywallProxyAuthv1.0.0':
+    if environment['HTTP_AUTHORIZATION'] != AUTH_AUTHORIZATION_HEADER:
         debug = 'The authorization token is incorrect.'
         raise_error(url, code, message, status, debug)
 
@@ -307,7 +307,7 @@ def check_publisher_auth_params(url, body):
         raise_error(url, code, message, status, debug)
 
 
-@post(API + VERSION + FORMAT + r'/auth' + PRODUCT_CODE)
+@post(AUTH)
 def auth(request, api, version, format, product_code):
     '''
     Overview:

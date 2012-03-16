@@ -341,11 +341,7 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         content = unicode(dumps('test'))
         exception = JsonBadSyntax(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = bad_syntax(request, exception)
@@ -361,30 +357,41 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
         self.assertRaises(AssertionError, bad_syntax, request, exception)
 
-    def test_unauthorized_pass(self):
+    def test_unauthorized_pass_auth(self):
         '''
         Checks to make sure that json encoded exceptions are passed through
         the exception handling framework properly.
         '''
         # Create the seed data for the test.
-        request = create_request('/test/')
+        url = '/paywallproxy/v1.0.0/json/auth/product01'
+        request = create_request(url)
         content = unicode(dumps('test'))
         exception = JsonUnauthorized(content)
+        request._environ = {}
 
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        # Issue the request to the method being tested.
+        result = unauthorized(request, exception)
+
+        # Check the result.
+        self.assertEqual(result, content)
+
+    def test_unauthorized_pass_validation(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        url = '/paywallproxy/v1.0.0/json/validate/product01'
+        request = create_request(url)
+        content = unicode(dumps('test'))
+        exception = JsonUnauthorized(content)
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = unauthorized(request, exception)
@@ -400,11 +407,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
@@ -419,11 +422,7 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         content = unicode(dumps('test'))
         exception = JsonForbidden(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = forbidden(request, exception)
@@ -439,11 +438,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
@@ -458,11 +453,7 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         content = unicode(dumps('test'))
         exception = JsonNotFound(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = not_found(request, exception)
@@ -477,11 +468,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = not_found(request, exception)
@@ -502,11 +489,7 @@ class TestErrors(TestCase):
         request = create_request('/test/')
         content = unicode(dumps('test'))
         exception = JsonAppError(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
@@ -521,11 +504,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
