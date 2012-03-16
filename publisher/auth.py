@@ -113,7 +113,7 @@ def decode_body(url, body):
     # This try except block intercepts the default exception and raises
     # a json encoded exception using the raise_error function.
     try:
-        json_body = loads(body)
+        json_body = loads(unicode(body))
 
     except ValueError:
         # If a ValueError occurred, the json decoder could not decode the
