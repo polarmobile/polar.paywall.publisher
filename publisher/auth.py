@@ -665,10 +665,7 @@ def auth(request, api, version, format, product_code):
     result['products'] = products
     content = dumps(result)
 
-    # The API requires that the authorization header be mirrored back for
-    # debugging purposes.
-    authorization = request._environ['HTTP_AUTHORIZATION']
-    headers = [('Authorization', authorization)]
     status = 200
+    headers = []
     content_type = 'application/json'
     return Response(content, headers, status, content_type)

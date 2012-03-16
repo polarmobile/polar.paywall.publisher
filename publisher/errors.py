@@ -57,7 +57,7 @@ def bad_syntax(request, exception):
     headers = []
     if 'HTTP_AUTHORIZATION' in request._environ:
         authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+        headers.append(('WWW-Authenticate', authorization))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -86,7 +86,7 @@ def unauthorized(request, exception):
     # guarantee that the header is in the request, so we need to check.
     if 'HTTP_AUTHORIZATION' in request._environ:
         authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+        headers.append(('WWW-Authenticate', authorization))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -117,7 +117,7 @@ def forbidden(request, exception):
     if 'HTTP_AUTHORIZATION' in request._environ:
         # Get the token and append it to the headers.
         authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+        headers.append(('WWW-Authenticate', authorization))
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
@@ -167,7 +167,7 @@ def not_found(request, exception):
     if 'HTTP_AUTHORIZATION' in request._environ:
         # Get the token and append it to the headers.
         authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+        headers.append(('WWW-Authenticate', authorization))
 
     # The content is determined below.
     content = ''
@@ -236,7 +236,7 @@ def internal_error(request, exception):
     if 'HTTP_AUTHORIZATION' in request._environ:
         # Get the token and append it to the headers.
         authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+        headers.append(('WWW-Authenticate', authorization))
 
     # The content is determined below.
     content = ''
