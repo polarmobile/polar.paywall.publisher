@@ -59,7 +59,7 @@ def bad_syntax(request, exception):
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
-    content = unicode(exception)
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -90,7 +90,7 @@ def unauthorized(request, exception):
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
-    content = unicode(exception)
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -113,7 +113,7 @@ def forbidden(request, exception):
 
     # The content is json encoded by the report_error function in utils.py.
     # In order to report the error, simply cast the error as a string.
-    content = unicode(exception)
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -158,7 +158,7 @@ def not_found(request, exception):
 
     # If the exception is json encoded, we can use the content directly.
     if isinstance(exception, JsonNotFound) == True:
-        content = unicode(exception)
+        content = unicode(exception).encode('utf-8', 'replace')
 
     # If the exception is not an AppError exception, then send a generic
     # exception, encoded as json.
@@ -221,7 +221,7 @@ def internal_error(request, exception):
     # the exception has been json encoded. If it is not, then we need to
     # substitute the message with a default message.
     if isinstance(exception, JsonAppError) == True:
-        content = unicode(exception)
+        content = unicode(exception).encode('utf-8', 'replace')
 
     # If the exception is not a JsonAppError exception, then send a generic
     # exception.

@@ -26,8 +26,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Used to encode the resulting error into json.
-from simplejson import dumps
+# Used to decode and encode post bodies that contain json encoded data.
+# Note that in python 2.5 and 2.6 the json module is called simplejson.
+# In Python 2.7 and onwards, json is used.
+try:
+    from json import dumps
+except ImportError:
+    from simplejson import dumps
 
 # Used to generate exceptions.
 from itty import RequestError, NotFound, AppError, Forbidden
@@ -120,7 +125,7 @@ def encode_error(url, code, message, debug=None):
         result['debug']['message'] = debug
 
     # Encode the message as json and return.
-    return unicode(dumps(result))
+    return dumps(result, ensure_ascii=False).encode('utf-8', 'replace')
 
 
 def raise_error(url, code, message, status, debug=None):

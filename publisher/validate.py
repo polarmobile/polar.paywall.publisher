@@ -38,8 +38,13 @@ from constants import (VALIDATE, SESSION_AUTHORIZATION_HEADER)
 # Used to validate a session key.
 from publisher.model import model
 
-# Used to encode post bodies using json.
-from simplejson import dumps
+# Used to decode and encode post bodies that contain json encoded data.
+# Note that in python 2.5 and 2.6 the json module is called simplejson.
+# In Python 2.7 and onwards, json is used.
+try:
+    from json import dumps
+except ImportError:
+    from simplejson import dumps
 
 
 def get_session_id(url, environment):
@@ -79,7 +84,7 @@ def get_session_id(url, environment):
     # id. It is not passed in the http body.
     token = environment['HTTP_AUTHORIZATION']
     scheme = SESSION_AUTHORIZATION_HEADER + ' session:'
-    if token.startswith(scheme) == False:
+    if not token.startswith(scheme):
         debug = 'The authorization token is incorrect.'
         raise_error(url, code, message, status, debug)
 
@@ -329,7 +334,7 @@ def validate(request, api, version, format, product_code):
     result = {}
     result['sessionKey'] = session_id
     result['products'] = products
-    content = dumps(result)
+    content = dumps(result, ensure_ascii=False).encode('utf-8', 'replace')
 
     status = 200
     headers = []

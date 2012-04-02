@@ -33,7 +33,12 @@ from itty import post, Response
 from publisher.utils import check_base_url, raise_error
 
 # Used to decode and encode post bodies that contain json encoded data.
-from simplejson import loads, dumps
+# Note that in python 2.5 and 2.6 the json module is called simplejson.
+# In Python 2.7 and onwards, json is used.
+try:
+    from json import loads, dumps
+except ImportError:
+    from simplejson import loads, dumps
 
 # Used to authenticate a user to the data model.
 from publisher.model import model
@@ -113,7 +118,7 @@ def decode_body(url, body):
     # This try except block intercepts the default exception and raises
     # a json encoded exception using the raise_error function.
     try:
-        json_body = loads(unicode(body))
+        json_body = loads(body, encoding='utf-8')
 
     except ValueError:
         # If a ValueError occurred, the json decoder could not decode the
@@ -168,7 +173,7 @@ def check_device(url, body):
         raise_error(url, code, message, status, debug)
 
     # Make sure the device is a dictionary.
-    if isinstance(body['device'], dict) == False:
+    if not isinstance(body['device'], dict):
         debug = 'The device is not a map.'
         raise_error(url, code, message, status, debug)
 
@@ -179,7 +184,9 @@ def check_device(url, body):
         raise_error(url, code, message, status, debug)
 
     # Check to make sure the manufacturer is of the right type.
-    if isinstance(body['device']['manufacturer'], unicode) == False:
+    manufacturer = body['device']['manufacturer']
+    if not isinstance(manufacturer, unicode) and \
+       not isinstance(manufacturer, str):
         debug = 'The manufacturer is not a string.'
         raise_error(url, code, message, status, debug)
 
@@ -189,7 +196,9 @@ def check_device(url, body):
         raise_error(url, code, message, status, debug)
 
     # Check to make sure the model is of the right type.
-    if isinstance(body['device']['model'], unicode) == False:
+    model = body['device']['model']
+    if not isinstance(model, unicode) and \
+       not isinstance(model, str):
         debug = 'The model is not a string.'
         raise_error(url, code, message, status, debug)
 
@@ -199,7 +208,9 @@ def check_device(url, body):
         raise_error(url, code, message, status, debug)
 
     # Check to make sure the os_version is of the right type.
-    if isinstance(body['device']['os_version'], unicode) == False:
+    os_version = body['device']['os_version']
+    if not isinstance(os_version, unicode) and \
+       not isinstance(os_version, str):
         debug = 'The os_version is not a string.'
         raise_error(url, code, message, status, debug)
 
@@ -243,13 +254,14 @@ def check_auth_params(url, body):
         return
 
     # When authParams is provided, the type must be a dictionary.
-    if isinstance(body['authParams'], dict) == False:
+    if not isinstance(body['authParams'], dict):
         debug = 'The authParams is not a map.'
         raise_error(url, code, message, status, debug)
 
     # Make sure that all the values in the dictionary are strings.
     for key in body['authParams']:
-        if isinstance(body['authParams'][key], unicode) == False:
+        value = body['authParams'][key]
+        if not isinstance(value, unicode) and not isinstance(value, str):
             debug = 'This authParams value is not a string: ' + unicode(key)
             raise_error(url, code, message, status, debug)
 
@@ -663,7 +675,7 @@ def auth(request, api, version, format, product_code):
     result = {}
     result['sessionKey'] = session_id
     result['products'] = products
-    content = dumps(result)
+    content = dumps(result, ensure_ascii=False).encode('utf-8', 'replace')
 
     status = 200
     headers = []

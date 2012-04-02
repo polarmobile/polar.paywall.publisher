@@ -237,7 +237,7 @@ class model:
             # Check to see if the user is valid. The check for a valid account
             # should come after the check for the password as the password
             # validates the user's identity.
-            if model.users[username]['valid'] == False:
+            if not model.users[username]['valid']:
                 code = 'AccountProblem'
                 message = 'Your account is not valid. Please contact support.'
                 raise_error(url, code, message, status)
@@ -316,7 +316,7 @@ class model:
                 # Check to see if the user is valid. The check for a valid
                 # account should come after the check for the session id as
                 # the password validates the user's identity.
-                if model.users[username]['valid'] == False:
+                if not model.users[username]['valid']:
                     code = 'AccountProblem'
                     message = ('Your account is not valid. Please contact '
                                'support.')
