@@ -1079,6 +1079,60 @@ class TestAuth(TestCase):
         self.assertEquals(result.content_type, 'application/json')
         self.assertEquals(result.status, 200)
 
+    @patch('publisher.model.uuid4')
+    def test_unicode(self, model_uuid4):
+        '''
+        Tests the server with unicode.
+        '''
+        # Create a test request
+        request = create_request('/test/')
+
+        # Create the url parameters.
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'json'
+        product_code = 'product01'
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
+        # Create the post body.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+        body['device']['os_version'] = 'test'
+        body['authParams'] = {}
+        body['authParams']['username'] = u'李刚'
+        body['authParams']['password'] = u'李刚'
+        request.body = dumps(body, ensure_ascii=False).encode('utf-8')
+
+        # Create seed data for the test. Mock will override uuid4 in the call
+        # to create_session_id to insert our testing values.
+        session_id = 'test'
+
+        # Set the return value of the mocked function to the session id being
+        # tested.
+        model_uuid4.return_value = session_id
+
+        # Try to authenticate the invalid user.
+        try:
+            # Run the auth function.
+            result = auth(request, api, version, format, product_code)
+
+        # Catch the exception and analyze it.
+        except JsonUnauthorized, exception:
+            content = u'{"error": {"message": "The credentials you have '\
+                'provided are not valid.", "code": '\
+                '"InvalidPaywallCredentials", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
 
 class TestModel(TestCase):
     '''
