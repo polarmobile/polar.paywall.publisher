@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='polar.paywall.publisher',
       version='1.0.0',
@@ -37,4 +37,5 @@ setup(name='polar.paywall.publisher',
       url='http://www.polarmobile.com',
       packages=['publisher'],
       scripts=['run_publisher.py'],
+      install_requires=['setuptools', 'itty'],
       depends=['itty', 'simplejson', 'mock'])
