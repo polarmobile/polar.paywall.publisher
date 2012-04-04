@@ -328,7 +328,7 @@ def validate(request, api, version, format, product_code):
 
     # Validate the session id using the data model.
     session_id = get_session_id(url, request._environ)
-    products = model().validate_session(url, session_id)
+    products = model().validate_session(url, session_id, product_code)
 
     # Create the response body.
     result = {}
