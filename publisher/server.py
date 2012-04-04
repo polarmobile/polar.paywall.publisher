@@ -41,15 +41,19 @@ from publisher.validate import validate
 # Get server parameters from the command line.
 from sys import argv
 
-# If no command line arguments are provided, run using defaults.
-if len(argv) != 3:
-    host = 'localhost'
-    port = '8080'
+def main():
+    '''
+    Launches the web server.
+    '''
+    # If no command line arguments are provided, run using defaults.
+    if len(argv) != 3:
+        host = 'localhost'
+        port = 8080
 
-# Get the host and port from the command line.
-else:
-    host = argv[1]
-    port = int(argv[2])
+    # Get the host and port from the command line.
+    else:
+        host = argv[1]
+        port = int(argv[2])
 
-# Run the web server.
-run_itty(host=host, port=port)
+    # Run the web server.
+    run_itty(host=host, port=port)

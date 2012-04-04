@@ -197,13 +197,18 @@ unit test suite, issue the following command on your terminal:
 
     python test.py
 
-### runserver.py ###
+### server.py ###
 
 A script that is used to run the sample server on port 8080. Note that this
 script should only ever be used for testing purposes and not in production. To
 run this script directly, issue the following command on your terminal:
 
-    python runserver.py
+    python server.py
+
+You can optionally specify the hostname and port number you want to run the
+server on:
+
+    python server.py 0.0.0.0 9090
 
 ### setup.py ###
 
