@@ -41,6 +41,7 @@ from publisher.validate import validate
 # Get server parameters from the command line.
 from sys import argv
 
+
 def main():
     '''
     Launches the web server.
