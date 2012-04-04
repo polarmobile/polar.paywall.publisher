@@ -240,6 +240,7 @@ class model:
             if not model.users[username]['valid']:
                 code = 'AccountProblem'
                 message = 'Your account is not valid. Please contact support.'
+                status = 403
                 raise_error(url, code, message, status)
 
             # Check to see if the user has access to the requested product.
