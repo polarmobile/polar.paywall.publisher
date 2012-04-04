@@ -38,5 +38,6 @@ from publisher.auth import auth
 # Import validate handling entry points.
 from publisher.validate import validate
 
-# Run the web server.
+# Run the web server. This python file is here for testing. Ideally, the server
+# should be run from the installed script.
 run_itty(host='0.0.0.0', port=8080)
