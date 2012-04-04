@@ -38,6 +38,18 @@ from publisher.auth import auth
 # Import validate handling entry points.
 from publisher.validate import validate
 
-# Run the web server. This python file is here for testing. Ideally, the server
-# should be run from the installed script.
-run_itty(host='0.0.0.0', port=8080)
+# Get server parameters from the command line.
+from sys import argv
+
+# If no command line arguments are provided, run using defaults.
+if len(argv) != 3:
+    host = 'localhost'
+    port = '8080'
+
+# Get the host and port from the command line.
+else:
+    host = argv[1]
+    port = int(argv[2])
+
+# Run the web server.
+run_itty(host=host, port=port)
