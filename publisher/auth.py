@@ -675,7 +675,7 @@ def auth(request, api, version, format, product_code):
     result = {}
     result['sessionKey'] = session_id
     result['products'] = products
-    content = dumps(result, ensure_ascii=False).encode('utf-8', 'replace')
+    content = dumps(result)
 
     status = 200
     headers = []

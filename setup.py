@@ -29,7 +29,7 @@
 from setuptools import setup
 
 setup(name='polar.paywall.publisher',
-      version='0.1.0rc3',
+      version='0.1.0rc4',
       description='Sample implementation of the publisher paywall server.',
       license='3-Clause BSD',
       author='Rishi Ramraj',

@@ -339,7 +339,7 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonBadSyntax(content)
         request._environ = {}
 
@@ -371,7 +371,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         url = '/paywallproxy/v1.0.0/json/auth/product01'
         request = create_request(url)
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonUnauthorized(content)
         request._environ = {}
 
@@ -389,7 +389,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         url = '/paywallproxy/v1.0.0/json/validate/product01'
         request = create_request(url)
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonUnauthorized(content)
         request._environ = {}
 
@@ -420,7 +420,7 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonForbidden(content)
         request._environ = {}
 
@@ -451,7 +451,7 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonNotFound(content)
         request._environ = {}
 
@@ -487,7 +487,7 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonAppError(content)
         request._environ = {}
 
@@ -1058,7 +1058,7 @@ class TestAuth(TestCase):
         body['authParams'] = {}
         body['authParams']['username'] = 'user01'
         body['authParams']['password'] = 'test'
-        request.body = unicode(dumps(body))
+        request.body = dumps(body)
 
         # Create seed data for the test. Mock will override uuid4 in the call
         # to create_session_id to insert our testing values.
@@ -1107,7 +1107,7 @@ class TestAuth(TestCase):
         body['authParams'] = {}
         body['authParams']['username'] = u'李刚'
         body['authParams']['password'] = u'李刚'
-        request.body = dumps(body, ensure_ascii=False).encode('utf-8')
+        request.body = dumps(body)
 
         # Create seed data for the test. Mock will override uuid4 in the call
         # to create_session_id to insert our testing values.
@@ -1149,7 +1149,7 @@ class TestModel(TestCase):
         model.users = None
 
     @patch('publisher.model.datetime')
-    def create_expired_session(self, username, model_datetime):
+    def create_expired_session(self, username, product,model_datetime):
         '''
         In order to test session key expiry, we need to create a session that
         has expired using the mock testing library to override datetime.now.
@@ -1163,7 +1163,7 @@ class TestModel(TestCase):
         model_datetime.now.return_value = timestamp
 
         # Generate the session id and return it.
-        return model().create_session_id(username)
+        return model().create_session_id(username, product)
 
     @patch('publisher.model.datetime')
     @patch('publisher.model.uuid4')
@@ -1188,11 +1188,12 @@ class TestModel(TestCase):
 
         # Note that the test user has already been loaded in constants.py.
         username = 'user01'
+        product = 'product01'
 
         # Generate the session key. There is no need to worry about threading
         # as all the tests are run in a single thread, so locking isn't an
         # issue.
-        result = model().create_session_id(username)
+        result = model().create_session_id(username, product)
 
         # Make sure the session key was generated properly.
         self.assertEqual(result, session_id)
@@ -1201,7 +1202,7 @@ class TestModel(TestCase):
         # generated properly.
         sessions = model.users[username]['session ids']
         session_timestamp = sessions[session_id]
-        self.assertEqual(session_timestamp, timestamp)
+        self.assertEqual(session_timestamp, (product, timestamp))
 
     def test_update_session_id(self):
         '''
@@ -1212,7 +1213,8 @@ class TestModel(TestCase):
         # Create the expired session. user01 has already been created in
         # constants.py.
         username = 'user01'
-        self.create_expired_session(username)
+        product = 'product01'
+        self.create_expired_session(username, product)
 
         # Expire the old key by calling update.
         model().update_session_ids(username)
@@ -1282,14 +1284,14 @@ class TestModel(TestCase):
         url = '/test/'
         username = 'user02'
         password = 'test'
-        product = 'invalid'
+        product = 'product01'
 
         # Try to authenticate the invalid user.
         try:
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except JsonUnauthorized, exception:
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'
@@ -1365,10 +1367,11 @@ class TestModel(TestCase):
         # Create seed data for the test.
         url = '/test/'
         session_id = 'invalid'
+        product = 'product01'
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
         except JsonUnauthorized, exception:
@@ -1391,11 +1394,12 @@ class TestModel(TestCase):
 
         # Create a valid session for the invalid test user.
         username = 'user02'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
         except JsonForbidden, exception:
@@ -1416,11 +1420,12 @@ class TestModel(TestCase):
         # Create seed data for the test.
         url = '/test/'
         username = 'user01'
-        session_id = self.create_expired_session(username)
+        product = 'product01'
+        session_id = self.create_expired_session(username, product)
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
         except JsonUnauthorized, exception:
@@ -1441,11 +1446,12 @@ class TestModel(TestCase):
         # Create seed data for the test. user01 is defined in constants.py.
         url = '/test/'
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
         products = ['product01', 'product02']
 
         # Run validation.
-        result = model().validate_session(url, session_id)
+        result = model().validate_session(url, session_id, product)
 
         # Make sure the products match.
         self.assertEqual(result, products)
@@ -1557,7 +1563,8 @@ class TestValidate(TestCase):
         '''
         # Create seed data for the test. user01 is defined in constants.py.
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Create a test request
         request = create_request('/test/')
@@ -1597,7 +1604,8 @@ class TestValidate(TestCase):
         '''
         # Create seed data for the test. user01 is defined in constants.py.
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Create a test request
         request = create_request('/test/')
