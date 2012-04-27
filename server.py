@@ -26,17 +26,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Used to run the web server for testing purposes.
-from itty import post, run_itty, get
+# This function runs the web server.
+from publisher.server import main
 
-# Import error handling entry points.
-from publisher.errors import bad_syntax, forbidden, not_found, internal_error
-
-# Import auth handling entry points.
-from publisher.auth import auth
-
-# Import validate handling entry points.
-from publisher.validate import validate
-
-# Run the web server.
-run_itty(host='0.0.0.0', port=8080)
+# This script is included for the convenience of developers when testing the
+# sample implementation. Instead of having to constantly install the server
+# in order to run it, the developer can simply call this file. If this script
+# is called directly, run the web server.
+if __name__ == '__main__':
+    main()

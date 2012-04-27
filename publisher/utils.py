@@ -125,7 +125,7 @@ def encode_error(url, code, message, debug=None):
         result['debug']['message'] = debug
 
     # Encode the message as json and return.
-    return dumps(result, ensure_ascii=False).encode('utf-8', 'replace')
+    return dumps(result)
 
 
 def raise_error(url, code, message, status, debug=None):

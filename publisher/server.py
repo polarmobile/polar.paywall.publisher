@@ -25,3 +25,36 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Used to run the web server for testing purposes.
+from itty import post, run_itty, get
+
+# Import error handling entry points.
+from publisher.errors import bad_syntax, forbidden, not_found, internal_error
+
+# Import auth handling entry points.
+from publisher.auth import auth
+
+# Import validate handling entry points.
+from publisher.validate import validate
+
+# Get server parameters from the command line.
+from sys import argv
+
+
+def main():
+    '''
+    Launches the web server.
+    '''
+    # If no command line arguments are provided, run using defaults.
+    if len(argv) != 3:
+        host = 'localhost'
+        port = 8080
+
+    # Get the host and port from the command line.
+    else:
+        host = argv[1]
+        port = int(argv[2])
+
+    # Run the web server.
+    run_itty(host=host, port=port)

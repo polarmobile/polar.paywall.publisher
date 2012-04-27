@@ -52,9 +52,9 @@ def bad_syntax(request, exception):
     # Ensure that the exception is json encoded.
     assert isinstance(exception, JsonBadSyntax) == True
 
-    # All exceptions handled by this function are json encoded 403 errors.
+    # All exceptions handled by this function are json encoded 400 errors.
     content_type = 'application/json'
-    status = 404
+    status = 400
     headers = []
 
     # The content is json encoded by the report_error function in utils.py.
@@ -74,7 +74,7 @@ def unauthorized(request, exception):
     # Ensure that the exception is json encoded.
     assert isinstance(exception, JsonUnauthorized) == True
 
-    # All exceptions handled by this function are json encoded 403 errors.
+    # All exceptions handled by this function are json encoded 401 errors.
     content_type = 'application/json'
     status = 401
     headers = []
