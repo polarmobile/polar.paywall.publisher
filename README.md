@@ -1,4 +1,4 @@
-# Polar Mobile Publisher Paywall: Sample Server # 
+# Polar Mobile Publisher Paywall: Sample Server #
 
 This project is a simple sample web server for the Polar Mobile Paywall API.
 
@@ -197,13 +197,18 @@ unit test suite, issue the following command on your terminal:
 
     python test.py
 
-### runserver.py ###
+### server.py ###
 
 A script that is used to run the sample server on port 8080. Note that this
 script should only ever be used for testing purposes and not in production. To
 run this script directly, issue the following command on your terminal:
 
-    python runserver.py
+    python server.py
+
+You can optionally specify the hostname and port number you want to run the
+server on:
+
+    python server.py 0.0.0.0 9090
 
 ### setup.py ###
 
@@ -225,9 +230,9 @@ passwords and keys.
 ## Errors ##
 
 For Client Errors (400-series) and Server Errors (500-series), an error report
-should be returned. Note that some error messages will be returned to the client
-as printable text. It is up to the publisher to ensure the quality of the
-content of these messages.
+should be returned. Note that error messages will be presented to the client as
+printable text. It is up to the publisher to ensure the quality of the content
+of these messages.
 
 ### Error Reports ###
 
@@ -239,6 +244,10 @@ parameters:
  * "message"
  * "resource"
 
+Optionally, another object called "debug" can be included with the report. The
+only required response parameter of this object is a "message", which is logged
+as a header.
+
 #### code ####
 
 This is a string error code that both Polar's server and the client can use to
@@ -247,7 +256,8 @@ on the error codes it may return.
 
 #### message ####
 
-A description of the error.
+A description of the error. Note that this description is always returned to the
+user.
 
 #### resource ####
 
@@ -270,11 +280,14 @@ Example Error Response:
             "code": "InvalidProduct",
             "message": "The specified article does not exist.",
             "resource": "/paywallproxy/v1.0.0/json/auth/60c2c670ea6b3847b"
+        },
+        "debug": {
+            "message": "The article was removed on date 01/01/10."
         }
     }
 
 ## Creating Users ##
 
-This section describes how to create test users and products. To add a new user
-or set of products to the test system, modify the users dictionary in
-constants.py
+This section describes how to create test users and products in this reference
+implementation. To add a new user or set of products to the test system, modify
+the users dictionary in constants.py.

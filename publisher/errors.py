@@ -36,6 +36,11 @@ from publisher.utils import (JsonBadSyntax, JsonUnauthorized, JsonForbidden,
 # Used to encode default errors, if a non-json error is encountered.
 from publisher.utils import encode_error
 
+# Used to match the urls for 401 errors.
+from re import match
+from constants import (AUTH, VALIDATE, AUTH_AUTHORIZATION_HEADER,
+                       SESSION_AUTHORIZATION_HEADER)
+
 
 @error(400)
 def bad_syntax(request, exception):
@@ -47,23 +52,14 @@ def bad_syntax(request, exception):
     # Ensure that the exception is json encoded.
     assert isinstance(exception, JsonBadSyntax) == True
 
-    # All exceptions handled by this function are json encoded 403 errors.
+    # All exceptions handled by this function are json encoded 400 errors.
     content_type = 'application/json'
-    status = 404
+    status = 400
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
-
-    # The content is the string representation of the exception.
-    content = unicode(exception)
-
-    # Create and send a response.
+    # The content is json encoded by the report_error function in utils.py.
+    # In order to report the error, simply cast the error as a string.
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -78,23 +74,23 @@ def unauthorized(request, exception):
     # Ensure that the exception is json encoded.
     assert isinstance(exception, JsonUnauthorized) == True
 
-    # All exceptions handled by this function are json encoded 403 errors.
+    # All exceptions handled by this function are json encoded 401 errors.
     content_type = 'application/json'
     status = 401
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
+    # WWW-Authenticate header is returned to tell the client which
+    # Authorization schemes are applicable to this resource. First, check the
+    # auth entry point.
+    if match(AUTH, request.path) != None:
+        headers.append(('WWW-Authenticate', AUTH_AUTHORIZATION_HEADER))
+    # Check the validate entry point.
+    elif match(VALIDATE, request.path) != None:
+        headers.append(('WWW-Authenticate', SESSION_AUTHORIZATION_HEADER))
 
-    # The content is the string representation of the exception.
-    content = unicode(exception)
-
-    # Create and send a response.
+    # The content is json encoded by the report_error function in utils.py.
+    # In order to report the error, simply cast the error as a string.
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -115,18 +111,9 @@ def forbidden(request, exception):
     status = 403
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
-
-    # The content is the string representation of the exception.
-    content = unicode(exception)
-
-    # Create and send a response.
+    # The content is json encoded by the report_error function in utils.py.
+    # In order to report the error, simply cast the error as a string.
+    content = unicode(exception).encode('utf-8', 'replace')
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -146,11 +133,7 @@ def not_found(request, exception):
     request (as opposed to its error code, message and resource) and continue
     processing.
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
+    Errors:
 
         NoHandler:
 
@@ -160,7 +143,8 @@ def not_found(request, exception):
             Polar server expects is not implemented on the publisher.
 
             Code: NoHandler
-            Message: No handler could be found for the requested resource.
+            Message: An error occurred. Please contact support.
+            Debug: No handler could be found for the requested resource.
             HTTP Error Code: 404
             Required: No
     '''
@@ -169,32 +153,22 @@ def not_found(request, exception):
     status = 404
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
-
     # The content is determined below.
     content = ''
 
     # If the exception is json encoded, we can use the content directly.
     if isinstance(exception, JsonNotFound) == True:
-        # The content is the string representation of the exception.
-        content = unicode(exception)
+        content = unicode(exception).encode('utf-8', 'replace')
 
     # If the exception is not an AppError exception, then send a generic
-    # exception.
+    # exception, encoded as json.
     else:
-        # Encode a default error.
         url = request.path
         code = 'NoHandler'
-        message = 'No handler could be found for the requested resource.'
-        content = encode_error(url, code, message)
+        message = 'An error occurred. Please contact support.'
+        debug = 'No handler could be found for the requested resource.'
+        content = encode_error(url, code, message, debug)
 
-    # Create and send a response.
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)
 
@@ -230,7 +204,8 @@ def internal_error(request, exception):
             exception is unknown).
 
             Code: InternalError
-            Message: An internal server error occurred.
+            Message: An error occurred. Please contact support.
+            Message: An internal server error occurred. Please check logs.
             HTTP Error Code: 500
             Required: No
     '''
@@ -239,33 +214,23 @@ def internal_error(request, exception):
     status = 500
     headers = []
 
-    # The authorization token depends on the request and it needs to be
-    # mirrored back to the client as per the API. Unfortunately, we can't
-    # guarantee that the header is in the request, so we need to check.
-    if 'HTTP_AUTHORIZATION' in request._environ:
-        # Get the token and append it to the headers.
-        authorization = request._environ['HTTP_AUTHORIZATION']
-        headers.append(('Authorization', authorization))
-
     # The content is determined below.
     content = ''
 
-    # HTTP 500 exceptions may be of any type. If the type is AppError then the
-    # exception has likely been json encoded. If it is not, then we need to
+    # HTTP 500 exceptions may be of any type. If the type is JsonAppError then
+    # the exception has been json encoded. If it is not, then we need to
     # substitute the message with a default message.
     if isinstance(exception, JsonAppError) == True:
-        # The content is the string representation of the exception.
-        content = unicode(exception)
+        content = unicode(exception).encode('utf-8', 'replace')
 
-    # If the exception is not an AppError exception, then send a generic
+    # If the exception is not a JsonAppError exception, then send a generic
     # exception.
     else:
-        # Encode a default error.
         url = request.path
         code = 'InternalError'
-        message = 'An internal server error occurred.'
-        content = encode_error(url, code, message)
+        message = 'An error occurred. Please contact support.'
+        debug = 'An internal server error occurred. Please check logs.'
+        content = encode_error(url, code, message, debug)
 
-    # Create and send a response.
     response = Response(content, headers, status, content_type)
     return response.send(request._start_response)

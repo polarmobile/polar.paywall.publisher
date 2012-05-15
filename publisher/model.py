@@ -71,7 +71,7 @@ class model:
             "valid": True,
             "products": ["test1","test2"],
             "password": "test"
-            "session ids": {<session id>: <time stamp>}
+            "session ids": {<session id>: (product, <time stamp>)}
             }
         }
     '''
@@ -100,7 +100,8 @@ class model:
         # permanently lock other threads if this thread fails.
         self.lock.acquire()
         try:
-            # Check to see if the users object is un-initialized.
+            # Check to see if the users object is un-initialized. It will be
+            # if this is the first time an instance of model is created.
             if model.users == None:
                 # Initialize the shared testing data by copying the dictionary
                 # in the constants file. deepcopy is used to ensure that python
@@ -108,31 +109,36 @@ class model:
                 # users dictionary (from constants.py). Making a copy of the
                 # users dictionary makes testing easier.
                 model.users = deepcopy(users)
+
         finally:
             self.lock.release()
 
-    def create_session_id(self, username):
+    def create_session_id(self, username, product):
         '''
         Creates a session key for the given user. Note that model.users is
         assumed to be locked before this function is called. The user's
         key and a timestamp are added to the model.users['session ids']
         list.
 
-        This function takes the username as a parameter and returns the
-        generated session key as a result.
+        This function takes the username and product as a parameter and returns
+        the generated session key as a result.
         '''
-        # Create the new session id.
-        session_id = str(uuid4())
+        # To generate session ids, this sample uses uuid4, which generates
+        # a random unique identifier. Note that this method is not secure.
+        # Please consult the cryptographic libraries packaged in your tool
+        # set for proper session id generation.
+        session_id = unicode(uuid4())
 
         # Create a timestamp for the session id. This timestamp will be
         # checked later to make sure that the id is still valid.
         timestamp = datetime.now()
 
-        # Insert the session id and the timestamp as a python tuple.
+        # Insert the session id into shared memory. Note that shared sessions
+        # is a map of session ids to timestamps.
         sessions = model.users[username]['session ids']
-        sessions[session_id] = timestamp
+        sessions[session_id] = (product, timestamp)
 
-        # Return the session id.
+        # Return the session id so that it can be reported back to the caller.
         return session_id
 
     def update_session_ids(self, username):
@@ -145,7 +151,7 @@ class model:
         Allowing a user to have multiple valid session keys lets them log into
         multiple devices without logging them out of their previous device.
         '''
-        # Make sure the user is valid.
+        # Make sure the user is known.
         assert username in model.users
 
         # Create a timedelta object to compare against the difference between
@@ -158,16 +164,13 @@ class model:
         valid_ids = {}
         sessions = model.users[username]['session ids']
         for session_id in sessions:
-            # Get the timestamp. 
-            timestamp = sessions[session_id]
-
-            # Check to see if the session has not expired.
+            # If the key has not expired, store it to indicate that it is
+            # valid.
+            product, timestamp = sessions[session_id]
             if (datetime.now() - timestamp) < expired_limit:
-                # If the key has not expired, store it so that it can be
-                # accessed later.
-                valid_ids[session_id] = timestamp
+                valid_ids[session_id] = (product, timestamp)
 
-        # Swap the current session ids for only valid ids.
+        # Swap the current session ids for the new set of valid is.
         model.users[username]['session ids'] = valid_ids
 
     def authenticate_user(self, url, username, password, product):
@@ -214,7 +217,6 @@ class model:
                 HTTP Error Code: 404
                 Required: Yes
         '''
-        # Lock access to the shared memory.
         self.lock.acquire()
         try:
             # Most of the errors in this function share a common code and
@@ -235,9 +237,10 @@ class model:
             # Check to see if the user is valid. The check for a valid account
             # should come after the check for the password as the password
             # validates the user's identity.
-            if model.users[username]['valid'] == False:
+            if not model.users[username]['valid']:
                 code = 'AccountProblem'
                 message = 'Your account is not valid. Please contact support.'
+                status = 403
                 raise_error(url, code, message, status)
 
             # Check to see if the user has access to the requested product.
@@ -247,22 +250,23 @@ class model:
                 status = 404
                 raise_error(url, code, message, status)
 
-            # Update all valid session keys.
+            # Update all valid session keys. While this call is not required
+            # at this time, issuing it helps keep the database of session ids
+            # small; particularly since the user has likely not been accessing
+            # content recently as they are logging in. Calling update now will
+            # hopefully free up many keys, reducing the memory footprint of
+            # the server.
             self.update_session_ids(username)
 
-            # Create a new session key.
-            session_id = self.create_session_id(username)
-
-            # Get a list of products that the username has access to.
-            products = model.users[username]['products']
-
             # Return the session id and products.
+            session_id = self.create_session_id(username, product)
+            products = model.users[username]['products']
             return (session_id, products)
 
         finally:
             self.lock.release()
 
-    def validate_session(self, url, session_id):
+    def validate_session(self, url, session_id, product):
         '''
         This function takes a session id, attempts to find the users that
         it is associated with. If it finds a user, it first updates the
@@ -296,29 +300,36 @@ class model:
                 HTTP Error Code: 403
                 Required: Yes
         '''
-        # Lock access to the shared memory.
         self.lock.acquire()
         try:
             # Most of the errors in this function share a common code and
             # status.
             code = 'SessionExpired'
             status = 401
+            message = 'Your session has expired. Please log back in.'
 
             # Loop over all of the users and check for the valid session id.
             for username in model.users:
-                # Check to see if the session id belongs to this user.
+                # If the session id does not belong to this user, keep
+                # searching.
                 if session_id not in model.users[username]['session ids']:
-                    # If it doesn't, keep looking.
                     continue
 
                 # Check to see if the user is valid. The check for a valid
                 # account should come after the check for the session id as
                 # the password validates the user's identity.
-                if model.users[username]['valid'] == False:
+                if not model.users[username]['valid']:
                     code = 'AccountProblem'
-                    message = 'Your account is not valid. Please contact '\
-                              'support.'
+                    message = ('Your account is not valid. Please contact '
+                               'support.')
                     status = 403
+                    raise_error(url, code, message, status)
+
+                # Check to make sure the product is valid.
+                if product not in model.users[username]['products']:
+                    code = 'InvalidProduct'
+                    message = 'The requested article could not be found.'
+                    status = 404
                     raise_error(url, code, message, status)
 
                 # Update the list of valid session ids; the session may have
@@ -331,16 +342,24 @@ class model:
                     message = 'Your session has expired. Please log back in.'
                     raise_error(url, code, message, status)
 
-                # Get a list of products that the username has access to and
-                # return them.
+                # Check to see if the session key is registered against the
+                # right product. The only way this can happen during normal
+                # operation is if a product that the user has authenticated
+                # has been deleted.
+                session = model.users[username]['session ids'][session_id]
+                stored_product, timestamp = session
+                if product != stored_product:
+                    # Their session has expired.
+                    raise_error(url, code, message, status)
+
+                # Return the user's products, which indicate a successful
+                # validation.
                 products = model.users[username]['products']
                 return products
 
             # If nothing has been returned at this point, raise an error.
             # We can only assume that their session key has expired.
-            message = 'Your session has expired. Please log back in.'
             raise_error(url, code, message, status)
 
         finally:
             self.lock.release()
-

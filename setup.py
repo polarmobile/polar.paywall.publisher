@@ -26,15 +26,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from distutils.core import setup
+from setuptools import setup
+
 
 setup(name='polar.paywall.publisher',
-      version='1.0.0',
+      version='0.1.0',
       description='Sample implementation of the publisher paywall server.',
       license='3-Clause BSD',
       author='Rishi Ramraj',
       author_email='rishi.ramraj@polarmobile.com',
       url='http://www.polarmobile.com',
       packages=['publisher'],
-      scripts=['run_publisher.py'],
-      depends=['itty', 'simplejson', 'mock'])
+      install_requires=['setuptools', 'itty', 'simplejson'],
+      extras_require={'test': ['mock']},
+      entry_points='''
+      [console_scripts]
+      paywall.publisher = publisher.server:main
+      ''')

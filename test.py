@@ -30,7 +30,7 @@
 from unittest import TestCase, main
 
 # Used to mimic objects in order to test more complex calls.
-from mock import patch, Mock
+from mock import patch
 
 # Used to generate fake http requests and test for responses.
 from itty import Request, Response
@@ -54,10 +54,7 @@ from publisher.auth import (check_authorization_header, decode_body,
 from publisher.model import model
 
 # Used to reset the models singleton and test timeouts.
-from publisher.constants import SESSION_TIMEOUT, users
-
-# Used to mimic functions like datetime to make testing predictable.
-from mock import patch, Mock
+from publisher.constants import SESSION_TIMEOUT
 
 # Used to test the timestamps in model.py.
 from datetime import datetime, timedelta
@@ -115,7 +112,7 @@ class TestUtils(TestCase):
         result = encode_error(url, code, message)
 
         # Check the result.
-        content = '{"error": {"message": "This is a test error.", '\
+        content = u'{"error": {"message": "This is a test error.", '\
             '"code": "TestError", "resource": "/test/"}}'
         self.assertEqual(result, content)
 
@@ -134,8 +131,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -159,8 +155,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -184,8 +179,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonForbidden))
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -209,8 +203,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -234,8 +227,7 @@ class TestUtils(TestCase):
             raise_error(url, code, message, status)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonAppError))
+        except JsonAppError, exception:
             content = u'{"error": {"message": "This is a test error.", '\
                 '"code": "TestError", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -259,11 +251,11 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
-            content = '{"error": {"message": "The requested api is not '\
-                'implemented: test", "code": "InvalidAPI", "resource": '\
-                '"/test/"}}'
+        except JsonNotFound, exception:
+            content = u'{"debug": {"message": "The requested api is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidAPI", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -285,11 +277,11 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
-            content = '{"error": {"message": "The requested version is not '\
-                'implemented: test", "code": "InvalidVersion", "resource": '\
-                '"/test/"}}'
+        except JsonNotFound, exception:
+            content = u'{"debug": {"message": "The requested version is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidVersion", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -311,16 +303,29 @@ class TestUtils(TestCase):
             check_base_url(url, api, version, format)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
-            content = '{"error": {"message": "The requested format is not '\
-                'implemented: test", "code": "InvalidFormat", "resource": '\
-                '"/test/"}}'
+        except JsonNotFound, exception:
+            content = u'{"debug": {"message": "The requested format is not '\
+                'implemented: test"}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
         else:
             raise AssertionError('No exception raised.')
+
+    def test_check_base_url(self):
+        '''
+        A valid pass for check_base_url.
+        '''
+        # Create the seed data for the test.
+        url = '/test/'
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'json'
+
+        # This function should raise no exception.
+        check_base_url(url, api, version, format)
 
 
 class TestErrors(TestCase):
@@ -334,13 +339,9 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonBadSyntax(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = bad_syntax(request, exception)
@@ -356,30 +357,41 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
         self.assertRaises(AssertionError, bad_syntax, request, exception)
 
-    def test_unauthorized_pass(self):
+    def test_unauthorized_pass_auth(self):
         '''
         Checks to make sure that json encoded exceptions are passed through
         the exception handling framework properly.
         '''
         # Create the seed data for the test.
-        request = create_request('/test/')
-        content = unicode(dumps('test'))
+        url = '/paywallproxy/v1.0.0/json/auth/product01'
+        request = create_request(url)
+        content = dumps('test')
         exception = JsonUnauthorized(content)
+        request._environ = {}
 
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        # Issue the request to the method being tested.
+        result = unauthorized(request, exception)
+
+        # Check the result.
+        self.assertEqual(result, content)
+
+    def test_unauthorized_pass_validation(self):
+        '''
+        Checks to make sure that json encoded exceptions are passed through
+        the exception handling framework properly.
+        '''
+        # Create the seed data for the test.
+        url = '/paywallproxy/v1.0.0/json/validate/product01'
+        request = create_request(url)
+        content = dumps('test')
+        exception = JsonUnauthorized(content)
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = unauthorized(request, exception)
@@ -395,11 +407,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
@@ -412,13 +420,9 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonForbidden(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = forbidden(request, exception)
@@ -434,11 +438,7 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested and ensure it raises
         # an assertion error.
@@ -451,13 +451,9 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonNotFound(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = not_found(request, exception)
@@ -472,18 +468,16 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = not_found(request, exception)
 
         # Check the result.
-        content = u'{"error": {"message": "No handler could be found for the '\
-            'requested resource.", "code": "NoHandler", "resource": "/test/"}}'
+        content = u'{"debug": {"message": "No handler could be found for the '\
+            'requested resource."}, "error": {"message": "An error occurred. '\
+            'Please contact support.", "code": "NoHandler", "resource": '\
+            '"/test/"}}'
         self.assertEqual(result, content)
 
     def test_internal_error_pass(self):
@@ -493,13 +487,9 @@ class TestErrors(TestCase):
         '''
         # Create the seed data for the test.
         request = create_request('/test/')
-        content = unicode(dumps('test'))
+        content = dumps('test')
         exception = JsonAppError(content)
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
@@ -514,18 +504,16 @@ class TestErrors(TestCase):
         # Create the seed data for the test.
         request = create_request('/test/')
         exception = Exception(u'test')
-
-        # Create the http headers.
-        environment = {}
-        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
-        request._environ = environment
+        request._environ = {}
 
         # Issue the request to the method being tested.
         result = internal_error(request, exception)
 
         # Check the result.
-        content = u'{"error": {"message": "An internal server error '\
-            'occurred.", "code": "InternalError", "resource": "/test/"}}'
+        content = u'{"debug": {"message": "An internal server error occurred.'\
+            ' Please check logs."}, "error": {"message": "An error occurred. '\
+            'Please contact support.", "code": "InternalError", "resource": '\
+            '"/test/"}}'
         self.assertEqual(result, content)
 
 
@@ -547,11 +535,11 @@ class TestAuth(TestCase):
             check_authorization_header(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The authorization token has '\
-                'not been provided.", "code": "InvalidAuthScheme", '\
-                '"resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authorization token has '\
+                'not been provided."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidAuthScheme", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -573,11 +561,11 @@ class TestAuth(TestCase):
             check_authorization_header(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The authorization token is '\
-                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authorization token is '\
+                'incorrect."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -610,11 +598,11 @@ class TestAuth(TestCase):
             decode_body(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "Could not decode post body. '\
-                'json is expected.", "code": "InvalidFormat", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "Could not decode post body. '\
+                'json is expected."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -639,11 +627,11 @@ class TestAuth(TestCase):
             decode_body(url, dumps(body))
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "Post body has an invalid '\
-                'number of parameters.", "code": "InvalidFormat", '\
-                '"resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "Post body has an invalid '\
+                'number of parameters."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": "InvalidFormat",'\
+                ' "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -664,10 +652,11 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The device has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The device has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidDevice", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -689,10 +678,10 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The device is not a map.", '\
-                '"code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The device is not a map."}, '\
+                '"error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -714,10 +703,11 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The manufacturer has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The manufacturer has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -740,10 +730,11 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The manufacturer is not a '\
-                'string.", "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The manufacturer is not a '\
+                'string."}, "error": {"message": "An error occurred. Please '\
+                'contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -766,10 +757,11 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The model has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The model has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidDevice", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -793,10 +785,10 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The model is not a string.",'\
-                ' "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The model is not a string."}, '\
+                '"error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidDevice", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -820,10 +812,11 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The os_version has not been '\
-                'provided.", "code": "InvalidDevice", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The os_version has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -848,10 +841,10 @@ class TestAuth(TestCase):
             check_device(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The os_version is not a '\
-                'string.", "code": "InvalidDevice", "resource": '\
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The os_version is not a '\
+                'string."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidDevice", "resource": '\
                 '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
@@ -886,8 +879,8 @@ class TestAuth(TestCase):
         body = {}
 
         # Issue the request to the method being tested. The function should not
-        # do anything.
-        result = check_auth_params(url, body)
+        # do anything or raise any exceptions.
+        check_auth_params(url, body)
 
     def test_check_auth_params_type(self):
         '''
@@ -904,10 +897,11 @@ class TestAuth(TestCase):
             check_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = u'{"error": {"message": "The authParams is not a '\
-                'map.", "code": "InvalidAuthParams", "resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authParams is not a map.'\
+                '"}, "error": {"message": "An error occurred. Please contact '\
+                'support.", "code": "InvalidAuthParams", "resource": '\
+                '"/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -930,11 +924,11 @@ class TestAuth(TestCase):
             check_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "This authParams value is not a '\
-                'string: test", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "This authParams value is not a'\
+                ' string: test"}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -952,8 +946,8 @@ class TestAuth(TestCase):
         body['authParams']['test'] = u'test'
 
         # Issue the request to the method being tested. The function should not
-        # do anything.
-        result = check_auth_params(url, body)
+        # do anything or raise any exceptions.
+        check_auth_params(url, body)
 
     def test_check_publisher_auth_params_exists(self):
         '''
@@ -970,11 +964,11 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The authParams has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authParams has not been '\
+                'provided."}, "error": {"message": "An error occurred. Please'\
+                ' contact support.", "code": "InvalidAuthParams", "resource":'\
+                ' "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -997,11 +991,11 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The username has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The username has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1025,11 +1019,11 @@ class TestAuth(TestCase):
             check_publisher_auth_params(url, body)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The password has not been '\
-                'provided.", "code": "InvalidAuthParams", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The password has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthParams", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1085,6 +1079,60 @@ class TestAuth(TestCase):
         self.assertEquals(result.content_type, 'application/json')
         self.assertEquals(result.status, 200)
 
+    @patch('publisher.model.uuid4')
+    def test_unicode(self, model_uuid4):
+        '''
+        Tests the server with unicode.
+        '''
+        # Create a test request
+        request = create_request('/test/')
+
+        # Create the url parameters.
+        api = 'paywallproxy'
+        version = 'v1.0.0'
+        format = 'json'
+        product_code = 'product01'
+
+        # Create the http headers.
+        environment = {}
+        environment['HTTP_AUTHORIZATION'] = 'PolarPaywallProxyAuthv1.0.0'
+        request._environ = environment
+
+        # Create the post body.
+        body = {}
+        body['device'] = {}
+        body['device']['manufacturer'] = 'test'
+        body['device']['model'] = 'test'
+        body['device']['os_version'] = 'test'
+        body['authParams'] = {}
+        body['authParams']['username'] = u'李刚'
+        body['authParams']['password'] = u'李刚'
+        request.body = dumps(body)
+
+        # Create seed data for the test. Mock will override uuid4 in the call
+        # to create_session_id to insert our testing values.
+        session_id = 'test'
+
+        # Set the return value of the mocked function to the session id being
+        # tested.
+        model_uuid4.return_value = session_id
+
+        # Try to authenticate the invalid user.
+        try:
+            # Run the auth function.
+            result = auth(request, api, version, format, product_code)
+
+        # Catch the exception and analyze it.
+        except JsonUnauthorized, exception:
+            content = u'{"error": {"message": "The credentials you have '\
+                'provided are not valid.", "code": '\
+                '"InvalidPaywallCredentials", "resource": "/test/"}}'
+            self.assertEqual(unicode(exception), content)
+
+        # If no exception was raised, raise an error.
+        else:
+            raise AssertionError('No exception raised.')
+
 
 class TestModel(TestCase):
     '''
@@ -1101,7 +1149,7 @@ class TestModel(TestCase):
         model.users = None
 
     @patch('publisher.model.datetime')
-    def create_expired_session(self, username, model_datetime):
+    def create_expired_session(self, username, product,model_datetime):
         '''
         In order to test session key expiry, we need to create a session that
         has expired using the mock testing library to override datetime.now.
@@ -1115,7 +1163,7 @@ class TestModel(TestCase):
         model_datetime.now.return_value = timestamp
 
         # Generate the session id and return it.
-        return model().create_session_id(username)
+        return model().create_session_id(username, product)
 
     @patch('publisher.model.datetime')
     @patch('publisher.model.uuid4')
@@ -1140,11 +1188,12 @@ class TestModel(TestCase):
 
         # Note that the test user has already been loaded in constants.py.
         username = 'user01'
+        product = 'product01'
 
         # Generate the session key. There is no need to worry about threading
         # as all the tests are run in a single thread, so locking isn't an
         # issue.
-        result = model().create_session_id(username)
+        result = model().create_session_id(username, product)
 
         # Make sure the session key was generated properly.
         self.assertEqual(result, session_id)
@@ -1153,7 +1202,7 @@ class TestModel(TestCase):
         # generated properly.
         sessions = model.users[username]['session ids']
         session_timestamp = sessions[session_id]
-        self.assertEqual(session_timestamp, timestamp)
+        self.assertEqual(session_timestamp, (product, timestamp))
 
     def test_update_session_id(self):
         '''
@@ -1164,7 +1213,8 @@ class TestModel(TestCase):
         # Create the expired session. user01 has already been created in
         # constants.py.
         username = 'user01'
-        session_id = self.create_expired_session(username)
+        product = 'product01'
+        self.create_expired_session(username, product)
 
         # Expire the old key by calling update.
         model().update_session_ids(username)
@@ -1189,8 +1239,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1216,8 +1265,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "The credentials you have '\
                 'provided are not valid.", "code": '\
                 '"InvalidPaywallCredentials", "resource": "/test/"}}'
@@ -1236,15 +1284,14 @@ class TestModel(TestCase):
         url = '/test/'
         username = 'user02'
         password = 'test'
-        product = 'invalid'
+        product = 'product01'
 
         # Try to authenticate the invalid user.
         try:
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'
@@ -1270,8 +1317,7 @@ class TestModel(TestCase):
             model().authenticate_user(url, username, password, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonNotFound))
+        except JsonNotFound, exception:
             content = u'{"error": {"message": "The requested article could '\
                 'not be found.", "code": "InvalidProduct", "resource": '\
                 '"/test/"}}'
@@ -1321,14 +1367,14 @@ class TestModel(TestCase):
         # Create seed data for the test.
         url = '/test/'
         session_id = 'invalid'
+        product = 'product01'
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "Your session has expired. '\
                 'Please log back in.", "code": "SessionExpired", "resource": '\
                 '"/test/"}}'
@@ -1348,15 +1394,15 @@ class TestModel(TestCase):
 
         # Create a valid session for the invalid test user.
         username = 'user02'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonForbidden))
+        except JsonForbidden, exception:
             content = u'{"error": {"message": "Your account is not valid. '\
                 'Please contact support.", "code": "AccountProblem", '\
                 '"resource": "/test/"}}'
@@ -1374,15 +1420,15 @@ class TestModel(TestCase):
         # Create seed data for the test.
         url = '/test/'
         username = 'user01'
-        session_id = self.create_expired_session(username)
+        product = 'product01'
+        session_id = self.create_expired_session(username, product)
 
         # Try to validate the invalid session.
         try:
-            model().validate_session(url, session_id)
+            model().validate_session(url, session_id, product)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonUnauthorized))
+        except JsonUnauthorized, exception:
             content = u'{"error": {"message": "Your session has expired. '\
                 'Please log back in.", "code": "SessionExpired", "resource": '\
                 '"/test/"}}'
@@ -1400,14 +1446,16 @@ class TestModel(TestCase):
         # Create seed data for the test. user01 is defined in constants.py.
         url = '/test/'
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
         products = ['product01', 'product02']
 
         # Run validation.
-        result = model().validate_session(url, session_id)
+        result = model().validate_session(url, session_id, product)
 
         # Make sure the products match.
         self.assertEqual(result, products)
+
 
 class TestValidate(TestCase):
     '''
@@ -1427,11 +1475,11 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The authorization token has '\
-                'not been provided.", "code": "InvalidAuthScheme", '\
-                '"resource": "/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authorization token has '\
+                'not been provided."}, "error": {"message": "An error '\
+                'occurred. Please contact support.", "code": '\
+                '"InvalidAuthScheme", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1453,11 +1501,11 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The authorization token is '\
-                'incorrect.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The authorization token is '\
+                'incorrect."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1480,11 +1528,11 @@ class TestValidate(TestCase):
             get_session_id(url, environment)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
-            content = '{"error": {"message": "The session id has not been '\
-                'provided.", "code": "InvalidAuthScheme", "resource": '\
-                '"/test/"}}'
+        except JsonBadSyntax, exception:
+            content = u'{"debug": {"message": "The session id has not been '\
+                'provided."}, "error": {"message": "An error occurred. '\
+                'Please contact support.", "code": "InvalidAuthScheme", '\
+                '"resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
 
         # If no exception was raised, raise an error.
@@ -1515,7 +1563,8 @@ class TestValidate(TestCase):
         '''
         # Create seed data for the test. user01 is defined in constants.py.
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Create a test request
         request = create_request('/test/')
@@ -1540,8 +1589,7 @@ class TestValidate(TestCase):
             validate(request, api, version, format, product_code)
 
         # Catch the exception and analyze it.
-        except Exception, exception:
-            self.assertTrue(isinstance(exception, JsonBadSyntax))
+        except JsonBadSyntax, exception:
             content = u'{"error": {"message": "Invalid post body.", '\
                 '"code": "InvalidFormat", "resource": "/test/"}}'
             self.assertEqual(unicode(exception), content)
@@ -1556,7 +1604,8 @@ class TestValidate(TestCase):
         '''
         # Create seed data for the test. user01 is defined in constants.py.
         username = 'user01'
-        session_id = model().create_session_id(username)
+        product = 'product01'
+        session_id = model().create_session_id(username, product)
 
         # Create a test request
         request = create_request('/test/')

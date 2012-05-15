@@ -33,13 +33,18 @@ from itty import post, Response
 from publisher.utils import check_base_url, raise_error
 
 # Used to match URLs.
-from constants import API, VERSION, FORMAT, PRODUCT_CODE
+from constants import (VALIDATE, SESSION_AUTHORIZATION_HEADER)
 
 # Used to validate a session key.
 from publisher.model import model
 
-# Used to encode post bodies using json.
-from simplejson import dumps
+# Used to decode and encode post bodies that contain json encoded data.
+# Note that in python 2.5 and 2.6 the json module is called simplejson.
+# In Python 2.7 and onwards, json is used.
+try:
+    from json import dumps
+except ImportError:
+    from simplejson import dumps
 
 
 def get_session_id(url, environment):
@@ -60,26 +65,28 @@ def get_session_id(url, environment):
             format.
 
             Code: InvalidAuthScheme
-            Message: Varies with the error.
+            Message: An error occurred. Please contact support.
+            Debug: Varies with the error.
             HTTP Error Code: 400.
             Required: No
     '''
     # All of the errors in this function share a common code and status.
     code = 'InvalidAuthScheme'
     status = 400
+    message = 'An error occurred. Please contact support.'
 
     # Make sure the token is provided.
     if 'HTTP_AUTHORIZATION' not in environment:
-        message = 'The authorization token has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The authorization token has not been provided.'
+        raise_error(url, code, message, status, debug)
 
-    # Make sure the token is provided. The auth-scheme token isn't important
-    # for this part of the API, but it is for others.
+    # Make sure the token's value is correct. This token contains the session
+    # id. It is not passed in the http body.
     token = environment['HTTP_AUTHORIZATION']
-    scheme = 'PolarPaywallProxySessionv1.0.0 session:'
-    if token.startswith(scheme) == False:
-        message = 'The authorization token is incorrect.'
-        raise_error(url, code, message, status)
+    scheme = SESSION_AUTHORIZATION_HEADER + ' session:'
+    if not token.startswith(scheme):
+        debug = 'The authorization token is incorrect.'
+        raise_error(url, code, message, status, debug)
 
     # Try to extract the session key. The syntax below extracts the characters
     # from the length of the scheme string to the end. Note that whitespace
@@ -88,14 +95,14 @@ def get_session_id(url, environment):
 
     # Check to make sure a session id has actually been provided.
     if len(session_id) == 0:
-        message = 'The session id has not been provided.'
-        raise_error(url, code, message, status)
+        debug = 'The session id has not been provided.'
+        raise_error(url, code, message, status, debug)
 
     # Return the session key.
     return session_id
 
 
-@post(API + VERSION + FORMAT + r'/validate' + PRODUCT_CODE)
+@post(VALIDATE)
 def validate(request, api, version, format, product_code):
     '''
     Overview:
@@ -217,21 +224,22 @@ def validate(request, api, version, format, product_code):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
-            
+
             {
                 "sessionKey": "9c4a51cc08d1",
-                
+
                 "products": [
                     "gold-level",
                     "silver-level"
                 ]
             }
 
-    Client Errors:
+    Errors:
 
-        This section documents errors that are returned to the client. Note
-        that the publisher is free to modify the content of these messages as
-        they please.
+        Some of the following errors are marked optional. They are included in
+        this example for completeness and testing purposes. Implementing them
+        makes testing the connection between Polar's server and the publishers
+        server easier.
 
         AccountProblem:
 
@@ -262,23 +270,13 @@ def validate(request, api, version, format, product_code):
             HTTP Error Code: 401
             Required: Yes
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
-
-        Some of the following errors are marked optional. They are included in
-        this example for completeness and testing purposes. Implementing them
-        makes testing the connection between Polar's server and the publishers
-        server easier.
-
         InvalidAPI:
 
             Returned when the publisher does not recognize the requested api.
 
             Code: InvalidAPI
-            Message: The requested api is not implemented: <api>
+            Message: An error occurred. Please contact support.
+            Debug: The requested api is not implemented: <api>
             HTTP Error Code: 404
             Required: No
 
@@ -288,7 +286,8 @@ def validate(request, api, version, format, product_code):
             version.
 
             Code: InvalidVersion
-            Message: The requested version is not implemented: <version>
+            Message: An error occurred. Please contact support.
+            Debug: The requested version is not implemented: <version>
             HTTP Error Code: 404
             Required: No
 
@@ -298,8 +297,9 @@ def validate(request, api, version, format, product_code):
             format.
 
             Code: InvalidFormat
-            Message: Varies with the error.
-            HTTP Error Code: 400.
+            Message: An error occurred. Please contact support.
+            Debug: The requested format is not implemented: <format>
+            HTTP Error Code: 404
             Required: No
 
         InvalidAuthScheme:
@@ -308,6 +308,7 @@ def validate(request, api, version, format, product_code):
             format.
 
             Code: InvalidAuthScheme
+            Message: An error occurred. Please contact support.
             Message: Varies with the error.
             HTTP Error Code: 400.
             Required: No
@@ -315,14 +316,8 @@ def validate(request, api, version, format, product_code):
     # Store the full URL string so that it can be used to report errors.
     url = request.path
 
-    # Validate the base URL.
+    # Validate the request.
     check_base_url(url, api, version, format)
-
-    # Get the session id from the auth-scheme token.
-    session_id = get_session_id(url, request._environ)
-
-    # Check to make sure there is no request body. Any whitespace characters
-    # are removed first before the comparison is made.
     if len(request.body.strip()) > 0:
         # If there is a body for this API call, that implies that the caller
         # is not conforming to the API, so raise an error.
@@ -331,23 +326,17 @@ def validate(request, api, version, format, product_code):
         status = 400
         raise_error(url, code, message, status)
 
-    # Validate the session id.
-    data_model = model()
-    products = data_model.validate_session(url, session_id)
+    # Validate the session id using the data model.
+    session_id = get_session_id(url, request._environ)
+    products = model().validate_session(url, session_id, product_code)
 
-    # Create the resulting response.
+    # Create the response body.
     result = {}
     result['sessionKey'] = session_id
     result['products'] = products
-
-    # Encode the result as a json object.
     content = dumps(result)
 
-    # Extract the authentication token and send it back.
-    authorization = request._environ['HTTP_AUTHORIZATION']
-    headers = [('Authorization', authorization)]
-
-    # Create and send a response.
     status = 200
+    headers = []
     content_type = 'application/json'
     return Response(content, headers, status, content_type)

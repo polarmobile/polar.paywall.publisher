@@ -26,8 +26,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Used to encode the resulting error into json.
-from simplejson import dumps
+# Used to decode and encode post bodies that contain json encoded data.
+# Note that in python 2.5 and 2.6 the json module is called simplejson.
+# In Python 2.7 and onwards, json is used.
+try:
+    from json import dumps
+except ImportError:
+    from simplejson import dumps
 
 # Used to generate exceptions.
 from itty import RequestError, NotFound, AppError, Forbidden
@@ -60,7 +65,6 @@ class JsonForbidden(Forbidden):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
@@ -69,7 +73,6 @@ class JsonNotFound(NotFound):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
@@ -78,16 +81,17 @@ class JsonAppError(AppError):
     To differentiate between a normal exception, and an exception that has json
     encoded content, the class name is prepended with json.
     '''
-    # The pass keyword tells python to "do nothing".
     pass
 
 
-def encode_error(url, code, message):
+def encode_error(url, code, message, debug=None):
     '''
     This utility function is called by raise_error to encode the url, code and
-    message parameters. Error are encoded using json. The body of the error is
-    a json map with a key called "error". The "error" value is another map with
-    the following parameters:
+    message parameters. Errors are encoded using json. The body of the error is
+    a json map with a key called "error" and an optional key called "debug".
+    Under no circumstances should this object be passed secrets like passwords
+    as they will be logged. The "error" value is another map with the following
+    parameters:
 
      * "code"
      * "message"
@@ -97,29 +101,34 @@ def encode_error(url, code, message):
     can use to easily triage an error. Each entry point in this project
     contains documentation on the error codes it may return.
 
-    "message" is a description of the error. Note that this message should
-    never contain a users password.
+    "message" is a description of the error. This message is printed to the
+    user.
 
     "resource" is the resource URL the request was attempting to access.
+
+    The resulting json object may optionally contain a "debug" key. That key
+    resolves to another map with at least a "message" key. Other keys can be
+    added to aid in debugging. In this implementation, the debug parameter
+    above is simply the debug message.
 
     This function takes the url, code and message and returns a json string
     containing the encoded values.
     '''
-    # Create a hash table to store the message.
     result = {}
     result['error'] = {}
-
-    # Store the error values. Note that the order of insertion does not
-    # matter as this is a hash table.
     result['error']['code'] = code
     result['error']['message'] = message
     result['error']['resource'] = url
 
+    if debug:
+        result['debug'] = {}
+        result['debug']['message'] = debug
+
     # Encode the message as json and return.
-    return unicode(dumps(result))
+    return dumps(result)
 
 
-def raise_error(url, code, message, status):
+def raise_error(url, code, message, status, debug=None):
     '''
     For Client Errors (400-series) and Server Errors (500-series), an error
     report should be returned. Note that some errors will be returned to the
@@ -137,7 +146,7 @@ def raise_error(url, code, message, status):
     internal implementation from leaking outside the framework.
     '''
     # Encode the error as a json string.
-    message = encode_error(url, code, message)
+    message = encode_error(url, code, message, debug)
 
     # Raise the appropriate error, based on the status. Note that the stack
     # trace is hidden to prevent any internal information from leaking.
@@ -168,18 +177,15 @@ def check_base_url(url, api, version, format):
 
     The errors this function returns are documented below.
 
-    Server Errors:
-
-        This section documents errors that are persisted on the server and not
-        sent to the client. Note that the publisher is free to modify the
-        content of these messages as they please.
+    Errors:
 
         InvalidAPI:
 
             Returned when the publisher does not recognize the requested api.
 
             Code: InvalidAPI
-            Message: The requested api is not implemented: <api>
+            Message: An error occurred. Please contact support.
+            Debug: The requested api is not implemented: <api>
             HTTP Error Code: 404
 
         InvalidVersion:
@@ -188,7 +194,8 @@ def check_base_url(url, api, version, format):
             version.
 
             Code: InvalidVersion
-            Message: The requested version is not implemented: <version>
+            Message: An error occurred. Please contact support.
+            Debug: The requested version is not implemented: <version>
             HTTP Error Code: 404
 
         InvalidFormat:
@@ -197,26 +204,28 @@ def check_base_url(url, api, version, format):
             format.
 
             Code: InvalidFormat
-            Message: The requested format is not implemented: <format>
+            Message: An error occurred. Please contact support.
+            Debug: The requested format is not implemented: <format>
             HTTP Error Code: 404
     '''
-    # All of the errors in this function share a common status.
+    # All of the errors in this function share a common status and message.
     status = 404
+    message = 'An error occurred. Please contact support.'
 
     # Check to make sure the api is correct.
     if api != 'paywallproxy':
         code = 'InvalidAPI'
-        message = 'The requested api is not implemented: ' + str(api)
-        raise_error(url, code, message, status)
+        debug = 'The requested api is not implemented: ' + str(api)
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure the version is correct.
-    elif version != 'v1.0.0':
+    if version != 'v1.0.0':
         code = 'InvalidVersion'
-        message = 'The requested version is not implemented: ' + str(version)
-        raise_error(url, code, message, status)
+        debug = 'The requested version is not implemented: ' + str(version)
+        raise_error(url, code, message, status, debug)
 
     # Check to make sure the format is correct.
-    elif format != 'json':
+    if format != 'json':
         code = 'InvalidFormat'
-        message = 'The requested format is not implemented: ' + str(format)
-        raise_error(url, code, message, status)
+        debug = 'The requested format is not implemented: ' + str(format)
+        raise_error(url, code, message, status, debug)
