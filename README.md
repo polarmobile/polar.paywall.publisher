@@ -66,7 +66,6 @@ Definitions related to the business domain.
  * __Entitilement Mechanism__ := A way users can access protected content.
     * __Subscription__ := An __entitilement mechanism__ where the user pays a recurring fee.
         * __Proxy Subscription__ := __Subscriptions__ managed by the __Publisher__.
-        * __Managed Subscription__ := __Subscriptions__ managed by the __Server__.
  * __Product__ := Content that is protected.
  * __Seller__ := A legal entity that provides the content.
  * __Product Association__ := Association between __Entitlement Mechanism__ and __Product__.
@@ -83,10 +82,13 @@ publications.
 
 ### Moving Parts ###
 
-The basic operation is as follows. First the user logs in. The __client__ uses
-those credentials to ask the __server__ for a session key. The __server__ will
-then ask the __publisher__ for the key. The __publisher__ will send the key to
-the __server__, who will send it back to the client.
+The basic operation is as follows. 
+
+1. First the user logs in. 
+2. The __client__ uses those credentials to ask the __server__ for a session key. 
+3. The __server__ will then ask the __publisher__ for the key. 
+4. The __publisher__ will send the key to the __server__
+5. The __server__ will send it back to the __client__.
 
 Next, when a __client__ wants to access protected content, they will send the
 key with the request, which will get proxied by the __server__ to the
@@ -110,15 +112,15 @@ They are described for completeness.
 
 #### Server to Publisher ####
 
- * __Authenticate__: Send user credentials to the __publisher__ and get a key back.
+ * __Authenticate__: Send user credentials to the __publisher__ and receive a key back.
  * __Product Access__: Request permission to serve content to the client.
 
 ## Sample Publisher ##
 
 This project is a sample implementation of a publisher server. It is written in
 Python and meant to serve as a reference for implementation. The sample is not
-fully functional and takes several shortcuts during implementation; it should
-under no circumstances be used in production.
+fully functional and takes several shortcuts; as such, it should
+not be used in production.
 
 This section provides an overview of the sample and the contents of the various
 files used in its implementation.
@@ -134,7 +136,7 @@ itty package, version 0.8.0 or greater.
 Note that installation is not required in order to test or run this sample. In
 order to run this sample, issue the following command to your command prompt:
 
-    python runserver.py
+    python server.py
 
 In order to install this sample, run the following command:
 
@@ -213,7 +215,7 @@ server on:
 ### setup.py ###
 
 Used to install the sample server. Note that it is not necessary to install the
-same server in order to test with it. The runserver.py script can be called
+same server in order to test with it. The server.py script can be called
 directly as long as the stated requirements are met.
 
 ## Deployment ##
@@ -223,9 +225,7 @@ circumstances be exposed as an HTTP server as it may allow a third party to
 obtain login credentials.
 
 Note that routing rules should only allow traffic between Polar's server and
-the Publisher's server over HTTPS (port 443). An IDS should be placed in front
-of the server to ensure that an attacker does not attempt to brute force any
-passwords and keys.
+the Publisher's server over HTTPS (port 443). 
 
 ## Errors ##
 
@@ -236,7 +236,7 @@ of these messages.
 
 ### Error Reports ###
 
-Error are encoded using json. The body of the error is a json map with a single
+Errors are encoded using json. The body of the error is a json map with a single
 key called "error". The "error" value is another map with the following
 parameters:
 
